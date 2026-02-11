@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { addDays, isAfter, isBefore, parseISO } from 'date-fns';
+import { addDays, isBefore, parseISO } from 'date-fns';
 import useTaskStore from './taskStore';
 import useMissionStore from './missionStore';
 

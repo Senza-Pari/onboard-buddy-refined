@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Crown, ArrowRight, X } from 'lucide-react';
+import { Crown, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface PremiumFeatureTooltipProps {

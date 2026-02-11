@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, CheckCircle, Circle, Search, X, Edit2, Trash2 } from 'lucide-react';
-import useTaskStore from '../stores/taskStore';
+import { motion } from 'framer-motion';
+import { Plus, CheckCircle, Circle, Search, Edit2, Trash2 } from 'lucide-react';
+import useTaskStore, { type Task } from '../stores/taskStore';
 import useAuthStore from '../stores/authStore';
 import TaskForm from '../components/TaskForm';
 import EditScreen from '../components/EditScreen';

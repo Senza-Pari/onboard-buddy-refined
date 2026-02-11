@@ -37,7 +37,6 @@ const MissionFormModal: React.FC<MissionFormModalProps> = ({
       value: 100
     },
     ...initialValues,
-    requirements: initialRequirements
   });
 
   const handleAddRequirement = () => {

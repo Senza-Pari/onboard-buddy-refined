@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { verifyActivationCode } from '../lib/activation';
-import useAuthStore from '../stores/authStore';
 
 const ActivateAccount: React.FC = () => {
   const [searchParams] = useSearchParams();

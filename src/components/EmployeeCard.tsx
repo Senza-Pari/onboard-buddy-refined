@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Eye, Edit, Trash2, Archive, RotateCcw, User, Calendar, Building, MapPin, Phone, Mail } from 'lucide-react';
+import { Eye, Edit, Trash2, Archive, RotateCcw, User, Calendar, MapPin, Phone, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Employee } from '../stores/employeeStore';
 
@@ -21,7 +21,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
   onDelete,
   onArchive,
   onRestore,
-  showArchived = false,
+  showArchived: _showArchived = false,
 }) => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {

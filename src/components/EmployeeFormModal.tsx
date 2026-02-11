@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, User, Building, MapPin, Phone, Mail, Users, AlertCircle } from 'lucide-react';
-import ImageUpload from './ImageUpload';
+import { X, Calendar, User, Building, MapPin, Phone, Mail, Users } from 'lucide-react';
 import type { Employee } from '../stores/employeeStore';
 
 interface EmployeeFormModalProps {
@@ -326,8 +325,8 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
                             workArrangementDetails: {
                               ...formData.workArrangementDetails,
                               hybridSchedule: {
-                                ...formData.workArrangementDetails?.hybridSchedule,
-                                inOffice: e.target.value.split(',').map(day => day.trim()).filter(Boolean)
+                                inOffice: e.target.value.split(',').map(day => day.trim()).filter(Boolean),
+                                remote: formData.workArrangementDetails?.hybridSchedule?.remote || []
                               }
                             }
                           })}
@@ -345,7 +344,7 @@ const EmployeeFormModal: React.FC<EmployeeFormModalProps> = ({
                             workArrangementDetails: {
                               ...formData.workArrangementDetails,
                               hybridSchedule: {
-                                ...formData.workArrangementDetails?.hybridSchedule,
+                                inOffice: formData.workArrangementDetails?.hybridSchedule?.inOffice || [],
                                 remote: e.target.value.split(',').map(day => day.trim()).filter(Boolean)
                               }
                             }

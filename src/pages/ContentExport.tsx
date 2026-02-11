@@ -47,7 +47,7 @@ const ContentExport: React.FC<ContentExportProps> = () => {
         content += `• ${task.title}\n`;
         content += `  Status: ${task.completed ? 'Completed' : 'Pending'}\n`;
         content += `  Due Date: ${task.dueDate}\n`;
-        content += `  Category: ${task.category}\n`;
+        content += `  Department: ${task.department}\n`;
         if (task.description) content += `  Description: ${task.description}\n`;
         if (task.notes) content += `  Notes: ${task.notes}\n`;
         content += '\n';
@@ -96,9 +96,9 @@ const ContentExport: React.FC<ContentExportProps> = () => {
       switch (exportFormat) {
         case 'pdf': {
           const doc = new jsPDF({
+            orientation: 'portrait',
             unit: 'pt',
             format: 'a4',
-            lineHeight: 1.5
           });
 
           // Set font and size
@@ -119,7 +119,7 @@ const ContentExport: React.FC<ContentExportProps> = () => {
           const pageHeight = doc.internal.pageSize.height;
 
           // Add lines to document with pagination
-          lines.forEach(line => {
+          lines.forEach((line: string) => {
             // Check if we need a new page
             if (cursorY > pageHeight - margin) {
               doc.addPage();

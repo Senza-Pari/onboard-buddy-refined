@@ -56,11 +56,10 @@ const useGalleryStore = create<GalleryState>()(
           id: crypto.randomUUID(),
           createdAt: Date.now(),
           updatedAt: Date.now(),
-          permissions: {
+          permissions: item.permissions || {
             public: false,
             editable: true,
             allowComments: true,
-            ...item.permissions,
           },
         };
 

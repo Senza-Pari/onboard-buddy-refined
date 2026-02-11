@@ -13,7 +13,7 @@ export async function createShareableLink(userId: string, options: ShareOptions 
       ? new Date(Date.now() + options.expiresIn * 60 * 60 * 1000)
       : null;
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('shared_workflows')
       .insert({
         owner_id: userId,

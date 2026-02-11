@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Tag } from 'lucide-react';
+import { X, Calendar } from 'lucide-react';
 import TagInput from './TagInput';
 import useTagStore from '../stores/tagStore';
 import type { Task } from '../stores/taskStore';

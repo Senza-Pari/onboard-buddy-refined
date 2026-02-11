@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Camera, Edit3, Tag, X, Trash2 } from 'lucide-react';
+import { Plus, Search, Camera, Edit3, X, Trash2 } from 'lucide-react';
 import ImageUpload from '../components/ImageUpload';
-import useGalleryStore from '../stores/galleryStore';
+import useGalleryStore, { type GalleryItem } from '../stores/galleryStore';
 import { useLocation } from 'react-router-dom';
 import useNotificationStore from '../stores/notificationStore';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';

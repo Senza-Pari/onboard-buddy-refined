@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Users, Search, Filter, Archive, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Search, Archive, RotateCcw } from 'lucide-react';
 import EmployeeFormModal from '../components/EmployeeFormModal';
 import EmployeeCard from '../components/EmployeeCard';
 import EmployeeDetailsModal from '../components/EmployeeDetailsModal';
@@ -21,10 +20,9 @@ const TemplateBuilder: React.FC = () => {
     deleteEmployee,
     restoreEmployee,
     searchEmployees,
-    getEmployeesByDepartment,
   } = useEmployeeStore();
 
-  const [currentStep, setCurrentStep] = useState(2); // Start at People step
+  const [currentStep] = useState(2); // Start at People step
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [viewingEmployee, setViewingEmployee] = useState<Employee | null>(null);
