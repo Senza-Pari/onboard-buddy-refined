@@ -84,7 +84,7 @@ const useTaskStore = create<TaskState>()(
         createdAt: new Date().toISOString(),
       })),
 
-      calculateDueDate: (taskType: string, startDate: string) => {
+      calculateDueDate: (_taskType: string, startDate: string) => {
         const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const zonedStartDate = utcToZonedTime(parseISO(startDate), userTimeZone);
         const duration = 5; // Default to 5 business days

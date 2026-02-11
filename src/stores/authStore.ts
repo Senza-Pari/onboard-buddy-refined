@@ -39,7 +39,7 @@ const useAuthStore = create<AuthState>()(
       testConnection: async () => {
         try {
           console.log('Testing Supabase connection...');
-          const { data, error } = await supabase.from('roles').select('count').limit(1);
+          const { error } = await supabase.from('roles').select('count').limit(1);
           
           if (error) {
             console.error('Database connection test failed:', error);
@@ -284,7 +284,6 @@ const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      storage: window.localStorage,
       version: 1,
       migrate: (persistedState: any, version: number) => {
         if (version === 0) {

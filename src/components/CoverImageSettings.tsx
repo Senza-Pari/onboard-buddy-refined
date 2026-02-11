@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Image as ImageIcon, X, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, AlertCircle, CheckCircle } from 'lucide-react';
 import ImageUpload from './ImageUpload';
 import useImageStore from '../stores/imageStore';
 
@@ -9,7 +9,7 @@ interface CoverImageSettingsProps {
 }
 
 const CoverImageSettings: React.FC<CoverImageSettingsProps> = ({ className = '' }) => {
-  const { welcomeBackground, welcomeBackgroundPath, setWelcomeBackground } = useImageStore();
+  const { welcomeBackground, setWelcomeBackground } = useImageStore();
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, User, Plus } from 'lucide-react';
+import { X, Calendar, Plus } from 'lucide-react';
 import ImageUpload from './ImageUpload';
 
 interface PersonFormData {

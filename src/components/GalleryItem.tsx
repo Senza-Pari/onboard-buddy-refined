@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Edit2, Trash2, X, MapPin, Calendar, Camera, Lock, Globe, MessageSquare } from 'lucide-react';
+import { Edit2, Trash2, X, MapPin, Calendar, Lock, Globe, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import ImageUpload from './ImageUpload';
 import type { GalleryItem as GalleryItemType } from '../stores/galleryStore';

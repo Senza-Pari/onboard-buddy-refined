@@ -32,7 +32,7 @@ const AppLayout: React.FC = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const navigate = useNavigate();
-  const { layout, theme } = useSettingsStore();
+  const { layout } = useSettingsStore();
   const { user } = useAuthStore();
   const { isPremium } = useSubscription();
 

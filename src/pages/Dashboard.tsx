@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
   CheckSquare, 
   Users, 
   FileText, 
-  Image, 
   Calendar, 
   ChevronRight,
   Bell,
@@ -172,7 +170,7 @@ const Dashboard: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="font-medium">{task.title}</span>
                   <span className="tag tag-neutral tag-small">
-                    {task.category}
+                    {task.department}
                   </span>
                 </div>
                 <div className="text-sm text-neutral-600 mt-1 flex items-center">

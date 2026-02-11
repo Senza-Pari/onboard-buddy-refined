@@ -161,13 +161,12 @@ const useEmployeeStore = create<EmployeeState>()(
           createdBy: performedBy,
           lastModifiedBy: performedBy,
           status: 'active',
-          onboardingProgress: {
+          onboardingProgress: employeeData.onboardingProgress || {
             tasksCompleted: 0,
             totalTasks: 0,
             missionsCompleted: 0,
             totalMissions: 0,
             currentPhase: 'pre-boarding',
-            ...employeeData.onboardingProgress,
           },
           workArrangementDetails: {
             ...employeeData.workArrangementDetails,

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Trophy, Plus, Tag, Calendar, Trash2, Edit, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import useMissionStore from '../stores/missionStore';
+import useMissionStore, { type Mission } from '../stores/missionStore';
 import MissionForm from '../components/MissionForm';
 import DeleteMissionDialog from '../components/DeleteMissionDialog';
 import { format, parseISO } from 'date-fns';
@@ -44,7 +44,7 @@ const Missions: React.FC = () => {
     }
   };
 
-  const handleUpdateMission = (mission: Parameters<typeof updateMission>[1]) => {
+  const handleUpdateMission = (mission: Partial<Mission>) => {
     if (!editingMission) return;
 
     try {

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Upload, Camera, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { Camera, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import heic2any from 'heic2any';
 import ReactCrop, { Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';

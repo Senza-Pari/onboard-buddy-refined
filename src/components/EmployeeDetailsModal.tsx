@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Calendar, Building, MapPin, Phone, Mail, Users, Clock, Tag, FileText } from 'lucide-react';
+import { X, User, Calendar, Building, MapPin, Phone, Users, Clock, Tag, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Employee } from '../stores/employeeStore';
 
