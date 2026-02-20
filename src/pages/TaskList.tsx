@@ -6,10 +6,12 @@ import useAuthStore from '../stores/authStore';
 import { useTaskData } from '../hooks/useAppData';
 import TaskForm from '../components/TaskForm';
 import EditScreen from '../components/EditScreen';
+import TaskCelebration from '../components/TaskCelebration';
 
 const TaskList: React.FC = () => {
   const { tasks, addTask, updateTask, deleteTask, toggleTaskCompletion } = useTaskData();
   const { user } = useAuthStore();
+  const [showCelebration, setShowCelebration] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCompleted, setShowCompleted] = useState(true);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -161,7 +163,12 @@ const TaskList: React.FC = () => {
           >
             <div className="flex items-start gap-3">
               <button 
-                onClick={() => toggleTaskCompletion(task.id)}
+                onClick={() => {
+                  if (!task.completed) {
+                    setShowCelebration(true);
+                  }
+                  toggleTaskCompletion(task.id);
+                }}
                 className="mt-1 flex-shrink-0"
               >
                 {task.completed ? (
@@ -234,6 +241,7 @@ const TaskList: React.FC = () => {
           </div>
         )}
       </div>
+      <TaskCelebration show={showCelebration} onDone={() => setShowCelebration(false)} />
     </div>
   );
 };
