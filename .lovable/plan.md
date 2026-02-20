@@ -1,202 +1,107 @@
 
-# Updated Demo Plan: Isolated Guest Sessions + Mobile-First Design
 
-## Two New Priorities Added to the Plan
+# Fix Demo Tour: Interactive Steps, Always-Available Restart, and Celebration Feedback
 
-Your two questions expose real gaps in the original plan. Here's how they change everything:
+## Issues Found
 
----
+1. **Tour overlay blocks interaction**: The `bg-black/50 pointer-events-auto` overlay covers the entire screen, preventing users from actually tapping tasks even though the hint says "Try checking off a task right now!" Clicking anywhere on the overlay calls `skip()`, which kills the tour entirely.
 
-## Problem 1: Guest Data Isolation — "One Person Shouldn't Break It For Everyone"
+2. **No way to restart the tour**: Once the tour is skipped or completed, there is no UI to re-launch it. A user who arrived via a bookmark or who dismissed it early has no way back.
 
-### The Root Cause
-
-All Zustand stores currently use `persist()` with `localStorage`. This means every visitor to the same browser shares the same data. If Person A checks off all the tasks, Person B opens the same browser tab (or if you demo it on a shared device) and sees a completed checklist. Worse, if someone deletes everything, it's gone for the next visitor on that device.
-
-### The Solution: Session-Scoped Demo Data (No Persistence)
-
-Instead of relying on localStorage for guest users, we change the approach entirely:
-
-**For guests, data lives only in memory for that browser session.**
-
-Here is how this works technically:
-
-- When `loginAsGuest()` is called, we set a flag `isGuestMode: true` in the auth store
-- A new `useDemoStore` holds all guest data (tasks, gallery items) **without** the `persist()` middleware — it exists only in RAM
-- The existing persisted stores (`taskStore`, `galleryStore`) are used only for real logged-in users
-- When a guest closes the tab or navigates away, their session data disappears naturally
-- Every new guest session starts fresh from the same canonical demo dataset
-
-This means:
-- Guest A and Guest B each get their own isolated, identical starting point
-- Guest A completing a task has zero effect on Guest B
-- A refresh resets back to the clean demo state (which is actually a feature — it encourages re-exploring)
-- Real users (when you later enable signup) have their data persisted normally
-
-### What This Looks Like in Code
-
-```text
-src/stores/demoStore.ts       — NEW: in-memory only store with all demo data
-src/stores/taskStore.ts       — Modified: reads from demoStore when isGuestMode=true  
-src/stores/galleryStore.ts    — Modified: reads from demoStore when isGuestMode=true
-src/hooks/useAppStore.ts      — NEW: a unified hook that returns the right store
-                                based on whether the user is a guest or real user
-```
-
-The pages themselves (`TaskList`, `Gallery`, etc.) call `useAppStore()` instead of the raw stores, so they automatically get the right data source without any per-page changes needed.
+3. **No celebration/feedback when completing a task**: Checking off a task has no visual reward — just a green checkmark swap. For a demo experience, this is a missed opportunity for delight.
 
 ---
 
-## Problem 2: Mobile-First Design
+## Solution
 
-### Current Mobile State
+### 1. Make the tour non-blocking on interactive steps
 
-Looking at the code, the app has basic mobile support but it is not mobile-first:
-- Sidebar collapses behind a hamburger menu (good)
-- But the hamburger button (`fixed top-4 left-4`) overlaps content and is small (44px tap target — barely acceptable)
-- Main content has `pt-12 md:pt-0` to dodge the hamburger, which is a hack
-- No bottom navigation bar (this is the standard mobile pattern for apps)
-- Task cards have small edit/delete buttons that are hard to tap on mobile
-- Gallery grid goes `sm:grid-cols-2` — fine, but form inputs and buttons need larger tap targets
-- The `input-field` class uses `py-3` padding — acceptable but not great on mobile
-- No consideration for one-handed use (bottom of screen is thumb territory)
+Change `DemoTour.tsx` so that on steps with an `actionHint` (currently step 2 — Tasks), the dark overlay is removed and the tour card floats as a non-blocking bottom sheet / floating card. This lets users actually interact with the page content underneath.
 
-### The Solution: Mobile Navigation Bar + Touch-First Layouts
+- Add an `interactive` boolean field to the `TourStep` interface in `demoTourSteps.ts`
+- When `step.interactive === true`, skip the full-screen overlay and instead render only the tooltip card (positioned at top on mobile, or top-right on desktop) with a subtle semi-transparent backdrop that does NOT capture pointer events
+- The tour card stays visible while the user interacts with the page
 
-**Replace the top hamburger with a bottom navigation bar on mobile.** This is the pattern every modern mobile app uses (think: Instagram, Twitter, Notion mobile). The sidebar stays for desktop.
+### 2. Add a "Restart Tour" button accessible anytime
 
-```text
-Mobile (< 768px):            Desktop (>= 768px):
-┌─────────────────────┐      ┌──────────┬────────────────────┐
-│ [  Main Content   ] │      │          │                    │
-│                     │      │ Sidebar  │   Main Content     │
-│                     │      │          │                    │
-├─────────────────────┤      └──────────┴────────────────────┘
-│ 🏠  ✅  🏆  👤  📷 │
-└─────────────────────┘
-```
+Add a small floating help/tour button visible to guest users at all times:
 
-The bottom nav shows the 5 most important sections. Templates and Export move to a "More" option or stay accessible via sidebar on tablet+.
+- In `AppLayout.tsx`, render a small floating action button (FAB) in the bottom-right corner (above the bottom nav on mobile) when the user is a guest AND the tour is not currently active
+- Icon: a `HelpCircle` or `Sparkles` icon with a tooltip "Replay Tour"
+- Tapping it calls `demoTourStore.start()` and also calls `demoStore.reset()` to restore the canonical demo data so the tour experience is fresh
+- On desktop, this can also appear as a sidebar menu item labeled "Replay Demo Tour"
 
-**Touch Target Sizes**: All interactive elements get `min-h-[44px] min-w-[44px]` — Apple's HIG and Google's Material Design both require this as the minimum for comfortable tapping.
+### 3. Add task completion celebration
 
-**Safe Area Handling**: Modern phones have home indicator bars and notches. We add `padding-bottom: env(safe-area-inset-bottom)` to the bottom nav so it doesn't sit behind the home indicator on iPhones.
+When a guest user checks off a task, show a brief animated celebration:
+
+- Create a small `TaskCelebration` component that renders a confetti burst or a satisfying checkmark animation using Framer Motion
+- In `TaskList.tsx`, when `toggleTaskCompletion` is called and the task transitions from incomplete to complete, trigger the celebration overlay for ~1.5 seconds
+- The celebration is a centered animated checkmark with a "Nice work!" message that auto-dismisses
+- Keep it lightweight — pure CSS/Framer Motion, no new dependencies
 
 ---
 
-## Complete Updated File Plan
-
-### New Files
-
-| File | Purpose |
-|------|---------|
-| `src/stores/demoStore.ts` | In-memory Zustand store (no persist) holding canonical demo data. Resets on page refresh automatically. |
-| `src/hooks/useAppData.ts` | Unified hook: returns demo store data for guests, real store data for authenticated users |
-| `src/components/BottomNav.tsx` | Mobile bottom navigation bar with 5 icons, active state highlighting, and safe-area padding |
-| `src/data/demoData.ts` | The canonical demo dataset: 10 tasks, 6 gallery items pre-tagged to unlock mission progress |
-| `src/components/DemoTour.tsx` | Guided tour overlay (from original plan, unchanged) |
-| `src/data/demoTourSteps.ts` | Tour step config (from original plan) |
-| `src/stores/demoTourStore.ts` | Tour state manager — not persisted, resets each session |
+## Files to Change
 
 ### Modified Files
 
 | File | Change |
 |------|--------|
-| `src/stores/authStore.ts` | Add `isGuestMode` flag; `loginAsGuest()` seeds demoStore and starts tour |
-| `src/layouts/AppLayout.tsx` | Add `<BottomNav />` for mobile; remove hamburger button hack; keep sidebar for desktop only |
-| `src/pages/TaskList.tsx` | Use `useAppData` hook; increase tap target sizes on task toggle and action buttons |
-| `src/pages/Gallery.tsx` | Use `useAppData` hook; larger buttons on mobile; stack form vertically on small screens |
-| `src/pages/Dashboard.tsx` | Use `useAppData` hook; make cards full-width and tappable on mobile |
-| `src/pages/Welcome.tsx` | Update "Explore as Guest" button copy; add mobile-optimized hero layout |
-| `src/index.css` | Add mobile-specific utility classes: safe-area padding, larger tap targets |
+| `src/data/demoTourSteps.ts` | Add `interactive: boolean` field to step 2 (Tasks) |
+| `src/components/DemoTour.tsx` | When `step.interactive` is true, remove the blocking overlay; render tour card as a non-blocking floating element instead |
+| `src/stores/demoTourStore.ts` | No change needed — `start()` already resets to step 0 |
+| `src/layouts/AppLayout.tsx` | Add a floating "Replay Tour" button for guest users when tour is inactive |
+| `src/pages/TaskList.tsx` | Add celebration animation when a task is toggled to complete |
+
+### New Files
+
+| File | Purpose |
+|------|---------|
+| `src/components/TaskCelebration.tsx` | Animated celebration overlay (checkmark + "Nice work!" text) shown briefly on task completion |
 
 ---
 
-## The Demo Dataset (What Every Guest Sees)
+## Technical Details
 
-**Guest persona**: Alex Rivera, Day 3 at Acme Corp (start date = 3 days ago, so Day 3 of 14 shows on Dashboard)
-
-### Tasks (10 total, mix of complete/pending to show real progress):
+### DemoTour.tsx Changes
 
 ```text
-Completed (3):
-- Submit I-9 documentation [HR, admin] — completed
-- Set up workstation [IT, setup, equipment] — completed  
-- Meet with manager [Manager, team, meetings] — completed
+Current behavior:
+  - Full-screen overlay with pointer-events-auto on ALL steps
+  - Clicking overlay calls skip() -> tour ends
 
-Pending (7):
-- Complete W-4 tax forms [HR, admin]
-- Configure email and Slack [IT, setup]
-- Complete security awareness training [IT]
-- Schedule 1:1s with teammates [Manager, team]
-- Review employee handbook [HR]
-- Access code repositories [IT]
-- Complete benefits enrollment [HR]
+New behavior:
+  - Non-interactive steps (0, 2-5): Keep the overlay but clicking it goes to NEXT step instead of skip
+  - Interactive step (1 - Tasks): No overlay at all; tour card is positioned at the top of the screen
+    as a floating banner so the task list below remains fully tappable
+  - Skip button still available on the card itself via the X button
 ```
 
-30% task completion = realistic "in progress" feeling, not overwhelming, not empty.
-
-### Gallery Items (6 pre-seeded notes, tagged to unlock missions):
+### Floating Replay Button
 
 ```text
-"First Day Reflections" — tags: hr, admin
-"Team Standup Notes" — tags: team, meetings
-"Workstation All Set!" — tags: setup, equipment
-"Company Values & Culture" — tags: admin, hr
-"Engineering Team Sync" — tags: team, meetings
-"Benefits Overview Notes" — tags: hr
+Position: fixed bottom-20 right-4 (above bottom nav on mobile), bottom-6 right-6 on desktop
+Visibility: only when user.id === 'demo-user' AND !demoTourStore.isActive
+Behavior: onClick -> demoStore.reset() then demoTourStore.start()
+Style: 48px circle, primary-500 background, white icon, subtle shadow + pulse animation
 ```
 
-These tags map directly to the 3 missions' requirements, so all missions show partial progress (not 0%) when the demo loads.
-
-### Mission Progress After Seeding:
-- "Complete Onboarding Basics" (needs admin×2, hr×2): admin=3✓, hr=4✓ → **100% — COMPLETED**
-- "Team Connection" (needs team×3, meetings×2): team=2, meetings=2 → **~80% in progress**
-- "Workspace Setup" (needs setup×2, equipment×1): setup=2✓, equipment=1✓ → **100% — COMPLETED**
-
-This means the Dashboard Mission Progress card shows ~93% average — impressive and engaging.
-
----
-
-## Mobile Navigation Details
-
-The `BottomNav` component:
+### TaskCelebration Component
 
 ```text
-[ 🏠 Home ][ ✅ Tasks ][ 🏆 Missions ][ 👤 People ][ 📷 Gallery ]
+Trigger: when toggleTaskCompletion flips a task from completed=false to completed=true
+Animation: scale-in checkmark icon (green) + "Nice work!" text, auto-dismiss after 1.5s
+Position: fixed center of screen, z-50
+Built with: Framer Motion (already installed), no new deps
 ```
 
-- Fixed to bottom of screen on mobile only (`md:hidden`)
-- Active item gets primary color highlight
-- Each item has a label below the icon
-- Minimum tap target: 44px height
-- Adds `pb-16` padding to main content on mobile so content doesn't hide behind the nav bar
-- Includes `padding-bottom: env(safe-area-inset-bottom)` for iPhone notch/home indicator
+### Overlay Click Behavior Change
 
-The old hamburger + slide-out sidebar remains on tablet (768px+) and desktop, unchanged.
+Instead of `onClick={skip}` on the overlay, change to `onClick={next}` so tapping anywhere advances the tour rather than ending it abruptly. The X button and "Skip tour" text remain for intentional dismissal.
 
 ---
 
-## Tour Flow (Updated for Mobile)
+## Summary
 
-The guided tour from the original plan works the same, but on mobile the tooltip becomes a **bottom sheet** instead of a floating tooltip. Bottom sheets are the standard mobile pattern for contextual information — they slide up from the bottom and are easy to dismiss with a swipe.
-
-- Desktop: floating tooltip card adjacent to spotlight element
-- Mobile: bottom sheet (fixed, slides up from bottom, 60% screen height max)
-- Both: animated with Framer Motion, same step content
-
----
-
-## Sequence of Implementation
-
-1. Create `demoData.ts` with the full dataset
-2. Create `demoStore.ts` (in-memory, no persist)
-3. Update `authStore.ts` `loginAsGuest()` to seed demoStore
-4. Create `useAppData.ts` hook
-5. Create `BottomNav.tsx` component
-6. Update `AppLayout.tsx` to include BottomNav and remove hamburger hack
-7. Update `TaskList.tsx`, `Gallery.tsx`, `Dashboard.tsx` to use `useAppData`
-8. Create `DemoTour.tsx` + `demoTourSteps.ts` + `demoTourStore.ts`
-9. Polish mobile tap targets and safe-area padding
-
-No database changes. No new npm dependencies. Framer Motion (already installed) handles all animations.
+Three targeted fixes, one new component, no new dependencies. The tour becomes usable (non-blocking on interactive steps), recoverable (replay button always available), and delightful (celebration on task completion).
