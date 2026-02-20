@@ -60,11 +60,12 @@ const Welcome: React.FC = () => {
           >
               <button
                 onClick={handleGuestLogin}
-                className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-500 text-white rounded-xl font-bold text-lg hover:bg-primary-600 transition-colors min-h-[48px] shadow-lg"
               >
                 <Play className="w-5 h-5" />
-                Explore as Guest
+                Start Interactive Demo
               </button>
+              <p className="text-white/60 text-sm -mt-2">No sign-up required • 2 minute tour</p>
 
               <Link 
                 to="/signup" 

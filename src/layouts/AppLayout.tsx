@@ -21,6 +21,8 @@ import SettingsPanel from '../components/SettingsPanel';
 import HelpCenter from '../components/HelpCenter';
 import ShareWorkflowDialog from '../components/ShareWorkflowDialog';
 import useAuthStore from '../stores/authStore';
+import BottomNav from '../components/BottomNav';
+import DemoTour from '../components/DemoTour';
 
 const AppLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -30,7 +32,6 @@ const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const { layout } = useSettingsStore();
   const { user } = useAuthStore();
-  
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -40,7 +41,6 @@ const AppLayout: React.FC = () => {
     navigate('/');
   };
 
-  // Helper function to check if user has a valid UUID
   const isValidUUID = (id: string) => {
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     return uuidRegex.test(id);
@@ -55,7 +55,6 @@ const AppLayout: React.FC = () => {
     { path: '/export', icon: <FileText size={20} />, label: 'Export' },
   ];
 
-  // Always show Templates tab, but with different styling for non-premium users
   const templatesNavItem = {
     path: '/templates',
     icon: <Layout size={20} />,
@@ -65,21 +64,20 @@ const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col">
-      
       <div className="flex flex-1">
-        {/* Mobile sidebar toggle */}
-        <div className="fixed top-4 left-4 z-30 md:hidden">
+        {/* Mobile sidebar toggle - hidden when bottom nav is shown */}
+        <div className="fixed top-4 left-4 z-30 hidden">
           <button 
             onClick={toggleSidebar}
-            className="p-2 rounded-full bg-white shadow-soft"
+            className="p-2 rounded-full bg-white shadow-soft min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar - desktop only */}
         <motion.div 
-          className={`fixed inset-0 z-20 bg-black bg-opacity-50 md:relative md:bg-transparent ${
+          className={`fixed inset-0 z-20 bg-black/50 md:relative md:bg-transparent ${
             isSidebarOpen ? 'block' : 'hidden md:block'
           }`}
           initial={{ opacity: 0 }}
@@ -121,7 +119,6 @@ const AppLayout: React.FC = () => {
                   </li>
                 ))}
 
-                {/* Templates Navigation Item */}
                 <li>
                   <NavLink
                     to={templatesNavItem.path}
@@ -180,17 +177,22 @@ const AppLayout: React.FC = () => {
         </motion.div>
 
         {/* Main content */}
-        <main className="flex-1 p-4 md:p-6">
+        <main className="flex-1 p-4 md:p-6 pb-20 md:pb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="pt-12 md:pt-0"
             style={{ maxWidth: layout.contentMaxWidth }}
           >
             <Outlet />
           </motion.div>
         </main>
+
+        {/* Bottom Navigation - mobile only */}
+        <BottomNav />
+
+        {/* Demo Tour */}
+        <DemoTour />
 
         {/* Settings Panel */}
         <AnimatePresence>

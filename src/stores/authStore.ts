@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
+import useDemoStore from './demoStore';
+import useDemoTourStore from './demoTourStore';
+import useMissionStore from './missionStore';
 
 interface User {
   id: string;
@@ -260,13 +263,22 @@ const useAuthStore = create<AuthState>()(
       },
 
       loginAsGuest: () => {
+        // Reset demo store to fresh state
+        useDemoStore.getState().reset();
+        
+        // Set global flag for mission store to read demo items
+        (window as any).__isGuestMode = true;
+
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 3);
+
         set({
           user: {
             id: 'demo-user',
-            email: 'demo@onboardbuddy.com',
-            name: 'Demo User',
-            company: 'Acme Inc.',
-            startDate: new Date().toISOString().split('T')[0],
+            email: 'alex.rivera@acmecorp.com',
+            name: 'Alex Rivera',
+            company: 'Acme Corp',
+            startDate: startDate.toISOString().split('T')[0],
             roles: ['super_admin'],
             permissions: ['*'],
           },
@@ -274,9 +286,17 @@ const useAuthStore = create<AuthState>()(
           isLoading: false,
           lastError: null,
         });
+
+        // Update mission progress with demo gallery items
+        const { missions, updateMissionProgress } = useMissionStore.getState();
+        missions.forEach(m => updateMissionProgress(m.id));
+
+        // Start the demo tour
+        useDemoTourStore.getState().start();
       },
 
       logout: async () => {
+        (window as any).__isGuestMode = false;
         try {
           const { error } = await supabase.auth.signOut();
           if (error) {
@@ -290,7 +310,6 @@ const useAuthStore = create<AuthState>()(
           });
         } catch (error) {
           console.error('Error signing out:', error);
-          // Force logout even if there's an error
           set({ 
             user: null, 
             isAuthenticated: false, 

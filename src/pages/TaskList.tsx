@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, CheckCircle, Circle, Search, Edit2, Trash2 } from 'lucide-react';
-import useTaskStore, { type Task } from '../stores/taskStore';
+import { type Task } from '../stores/taskStore';
 import useAuthStore from '../stores/authStore';
+import { useTaskData } from '../hooks/useAppData';
 import TaskForm from '../components/TaskForm';
 import EditScreen from '../components/EditScreen';
 
 const TaskList: React.FC = () => {
-  const { tasks, addTask, updateTask, deleteTask, toggleTaskCompletion } = useTaskStore();
+  const { tasks, addTask, updateTask, deleteTask, toggleTaskCompletion } = useTaskData();
   const { user } = useAuthStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [showCompleted, setShowCompleted] = useState(true);
