@@ -3,6 +3,7 @@ export interface TourStep {
   title: string;
   body: string;
   actionHint?: string;
+  interactive?: boolean;
 }
 
 export const TOUR_STEPS: TourStep[] = [
@@ -16,6 +17,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: 'Your Onboarding Checklist ✅',
     body: 'Tasks are organized by department (HR, IT, Manager). Check items off as you complete them and watch your progress grow!',
     actionHint: 'Try checking off a task right now!',
+    interactive: true,
   },
   {
     route: '/missions',

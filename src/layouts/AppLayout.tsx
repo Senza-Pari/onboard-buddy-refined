@@ -13,7 +13,8 @@ import {
   Settings,
   HelpCircle,
   Share2,
-  Layout
+  Layout,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useSettingsStore from '../stores/settingsStore';
@@ -23,6 +24,8 @@ import ShareWorkflowDialog from '../components/ShareWorkflowDialog';
 import useAuthStore from '../stores/authStore';
 import BottomNav from '../components/BottomNav';
 import DemoTour from '../components/DemoTour';
+import useDemoTourStore from '../stores/demoTourStore';
+import useDemoStore from '../stores/demoStore';
 
 const AppLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -32,6 +35,13 @@ const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const { layout } = useSettingsStore();
   const { user } = useAuthStore();
+  const isGuest = user?.id === 'demo-user';
+  const { isActive: isTourActive } = useDemoTourStore();
+
+  const handleReplayTour = () => {
+    useDemoStore.getState().reset();
+    useDemoTourStore.getState().start();
+  };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -193,6 +203,21 @@ const AppLayout: React.FC = () => {
 
         {/* Demo Tour */}
         <DemoTour />
+
+        {/* Replay Tour FAB for guest users */}
+        {isGuest && !isTourActive && (
+          <motion.button
+            onClick={handleReplayTour}
+            className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 w-12 h-12 rounded-full bg-primary-500 text-white shadow-lg hover:bg-primary-600 flex items-center justify-center transition-colors"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            title="Replay Tour"
+          >
+            <Sparkles size={22} />
+          </motion.button>
+        )}
 
         {/* Settings Panel */}
         <AnimatePresence>
