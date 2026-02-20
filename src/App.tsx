@@ -19,7 +19,7 @@ import ActivateAccount from './pages/ActivateAccount';
 import useAuthStore from './stores/authStore';
 
 function App() {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   return (
     <Routes>
@@ -29,14 +29,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
         <Route path="/activate" element={<ActivateAccount />} />
-        <Route 
-          path="/pricing" 
-          element={
-            user?.email === 'cam@dollen.com' 
-              ? <Navigate to="/dashboard\" replace /> 
-              : <Pricing />
-          } 
-        />
+        <Route path="/pricing" element={<Pricing />} />
       </Route>
       
       {/* Protected routes */}

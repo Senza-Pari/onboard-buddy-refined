@@ -21,6 +21,7 @@ interface AuthState {
   hasRole: (role: string) => boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string, company: string) => Promise<void>;
+  loginAsGuest: () => void;
   logout: () => Promise<void>;
   clearError: () => void;
   testConnection: () => Promise<boolean>;
@@ -256,6 +257,23 @@ const useAuthStore = create<AuthState>()(
           });
           throw error;
         }
+      },
+
+      loginAsGuest: () => {
+        set({
+          user: {
+            id: 'demo-user',
+            email: 'demo@onboardbuddy.com',
+            name: 'Demo User',
+            company: 'Acme Inc.',
+            startDate: new Date().toISOString().split('T')[0],
+            roles: ['super_admin'],
+            permissions: ['*'],
+          },
+          isAuthenticated: true,
+          isLoading: false,
+          lastError: null,
+        });
       },
 
       logout: async () => {

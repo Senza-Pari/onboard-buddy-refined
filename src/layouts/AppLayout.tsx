@@ -13,17 +13,13 @@ import {
   Settings,
   HelpCircle,
   Share2,
-  Layout,
-  Crown
+  Layout
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useSettingsStore from '../stores/settingsStore';
-import { useSubscription } from '../hooks/useSubscription';
 import SettingsPanel from '../components/SettingsPanel';
 import HelpCenter from '../components/HelpCenter';
 import ShareWorkflowDialog from '../components/ShareWorkflowDialog';
-import PremiumBanner from '../components/PremiumBanner';
-import PremiumFeatureTooltip from '../components/PremiumFeatureTooltip';
 import useAuthStore from '../stores/authStore';
 
 const AppLayout: React.FC = () => {
@@ -34,7 +30,7 @@ const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const { layout } = useSettingsStore();
   const { user } = useAuthStore();
-  const { isPremium } = useSubscription();
+  
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -69,7 +65,6 @@ const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col">
-      <PremiumBanner />
       
       <div className="flex flex-1">
         {/* Mobile sidebar toggle */}
@@ -141,25 +136,10 @@ const AppLayout: React.FC = () => {
                   >
                     <span className="mr-3">{templatesNavItem.icon}</span>
                     {templatesNavItem.label}
-                    {!isPremium && (
-                      <PremiumFeatureTooltip
-                        title="Premium Templates"
-                        description="Access our full template library and customization tools"
-                        benefits={[
-                          'Pre-built industry templates',
-                          'Custom template builder',
-                          'Advanced customization',
-                          'Team deployment tools'
-                        ]}
-                        className="ml-auto"
-                      >
-                        <Crown size={16} className="text-yellow-500" />
-                      </PremiumFeatureTooltip>
-                    )}
                   </NavLink>
                 </li>
 
-                {(isPremium || user?.email === 'cam@dollen.com') && user && isValidUUID(user.id) && (
+                {user && isValidUUID(user.id) && (
                   <li>
                     <button
                       onClick={() => setIsShareOpen(true)}
