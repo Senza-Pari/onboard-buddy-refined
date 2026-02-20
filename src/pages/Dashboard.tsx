@@ -10,15 +10,15 @@ import {
   Trophy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import useTaskStore from '../stores/taskStore';
 import useAuthStore from '../stores/authStore';
 import useMissionStore from '../stores/missionStore';
+import { useTaskData } from '../hooks/useAppData';
 import useNotificationStore from '../stores/notificationStore';
 import NotificationCenter from '../components/NotificationCenter';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { tasks } = useTaskStore();
+  const { tasks } = useTaskData();
   const { user } = useAuthStore();
   const { missions } = useMissionStore();
   const { unreadCount } = useNotificationStore();

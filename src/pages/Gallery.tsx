@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, Camera, Edit3, X, Trash2 } from 'lucide-react';
 import ImageUpload from '../components/ImageUpload';
-import useGalleryStore, { type GalleryItem } from '../stores/galleryStore';
+import { type GalleryItem } from '../stores/galleryStore';
+import { useGalleryData } from '../hooks/useAppData';
 import { useLocation } from 'react-router-dom';
 import useNotificationStore from '../stores/notificationStore';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
 
 const Gallery: React.FC = () => {
   const location = useLocation();
-  const { items, addItem, updateItem, deleteItem, tags: availableTags } = useGalleryStore();
+  const { items, addItem, updateItem, deleteItem, tags: availableTags } = useGalleryData();
   const { addNotification } = useNotificationStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);

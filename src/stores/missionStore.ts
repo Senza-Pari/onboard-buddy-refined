@@ -203,11 +203,19 @@ const useMissionStore = create<MissionState>()(
         const mission = get().missions.find(m => m.id === missionId);
         if (!mission) return;
 
-        const { items } = useGalleryStore.getState();
+        // Check if we're in guest/demo mode via a global flag set by authStore
+        let items: any[];
+        if ((window as any).__isGuestMode) {
+          // Dynamically get demo store to avoid circular imports
+          const demoStoreModule = (window as any).__demoStore;
+          items = demoStoreModule ? demoStoreModule.getState().items : useGalleryStore.getState().items;
+        } else {
+          items = useGalleryStore.getState().items;
+        }
         
         const updatedRequirements = mission.requirements.map(req => ({
           ...req,
-          current: items.filter(item => item.tags.includes(req.tag)).length
+          current: items.filter((item: any) => item.tags.includes(req.tag)).length
         }));
 
         const totalRequired = mission.requirements.reduce((sum, req) => sum + req.count, 0);

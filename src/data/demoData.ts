@@ -1,0 +1,226 @@
+import { type Task } from '../stores/taskStore';
+import { type GalleryItem } from '../stores/galleryStore';
+
+// Guest persona start date: 3 days ago
+const getStartDate = () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 3);
+  return d.toISOString().split('T')[0];
+};
+
+const getDueDate = (daysFromStart: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() - 3 + daysFromStart);
+  return d.toISOString().split('T')[0];
+};
+
+const getGalleryDate = (daysAgo: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  return d.toISOString().split('T')[0];
+};
+
+export const DEMO_TASKS: Task[] = [
+  {
+    id: 1,
+    title: 'Submit I-9 documentation',
+    tags: ['admin', 'hr'],
+    department: 'HR',
+    description: 'Provide required identification and work authorization documents to HR.',
+    notes: 'Brought passport and social security card. HR confirmed everything is in order.',
+    startDate: getStartDate(),
+    dueDate: getDueDate(2),
+    completed: true,
+    priority: 'high',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 2,
+    title: 'Set up workstation',
+    tags: ['setup', 'equipment'],
+    department: 'IT',
+    description: 'Configure your computer, monitors, and workspace setup with IT support.',
+    notes: 'MacBook Pro 14" with dual monitors. IT helped install all required software.',
+    startDate: getStartDate(),
+    dueDate: getDueDate(2),
+    completed: true,
+    priority: 'high',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 3,
+    title: 'Meet with manager',
+    tags: ['team', 'meetings'],
+    department: 'Manager',
+    description: 'Initial 1:1 meeting with your direct supervisor to discuss expectations and goals.',
+    notes: 'Great first meeting! Discussed 30-60-90 day plan and team culture.',
+    startDate: getStartDate(),
+    dueDate: getDueDate(1),
+    completed: true,
+    priority: 'high',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 4,
+    title: 'Complete W-4 tax forms',
+    tags: ['admin', 'hr'],
+    department: 'HR',
+    description: 'Fill out federal and state tax withholding forms for payroll.',
+    startDate: getStartDate(),
+    dueDate: getDueDate(5),
+    completed: false,
+    priority: 'high',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 5,
+    title: 'Configure email and Slack',
+    tags: ['setup', 'it'],
+    department: 'IT',
+    description: 'Set up your company email, Slack workspace, and communication preferences.',
+    startDate: getStartDate(),
+    dueDate: getDueDate(3),
+    completed: false,
+    priority: 'high',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 6,
+    title: 'Complete security awareness training',
+    tags: ['it', 'training'],
+    department: 'IT',
+    description: 'Complete the required cybersecurity and data protection training modules.',
+    link: 'https://example.com/security-training',
+    startDate: getStartDate(),
+    dueDate: getDueDate(7),
+    completed: false,
+    priority: 'medium',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 7,
+    title: 'Schedule 1:1s with teammates',
+    tags: ['team', 'meetings'],
+    department: 'Manager',
+    description: 'Set up introductory meetings with each member of your immediate team.',
+    startDate: getStartDate(),
+    dueDate: getDueDate(7),
+    completed: false,
+    priority: 'medium',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 8,
+    title: 'Review employee handbook',
+    tags: ['hr', 'admin'],
+    department: 'HR',
+    description: 'Read through the company policies, benefits overview, and code of conduct.',
+    link: 'https://example.com/handbook',
+    startDate: getStartDate(),
+    dueDate: getDueDate(10),
+    completed: false,
+    priority: 'medium',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 9,
+    title: 'Access code repositories',
+    tags: ['it', 'setup'],
+    department: 'IT',
+    description: 'Get access to GitHub/GitLab repositories and review the codebase architecture.',
+    startDate: getStartDate(),
+    dueDate: getDueDate(5),
+    completed: false,
+    priority: 'high',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 10,
+    title: 'Complete benefits enrollment',
+    tags: ['hr', 'admin'],
+    department: 'HR',
+    description: 'Enroll in health insurance, 401k, and other company benefits before the deadline.',
+    startDate: getStartDate(),
+    dueDate: getDueDate(14),
+    completed: false,
+    priority: 'low',
+    createdAt: new Date().toISOString(),
+  },
+];
+
+export const DEMO_GALLERY_ITEMS: GalleryItem[] = [
+  {
+    id: 'demo-1',
+    type: 'note',
+    title: 'First Day Reflections',
+    description: 'Thoughts from my first day at Acme Corp',
+    content: 'What an incredible first day! The team was so welcoming. Had a great office tour, met the leadership team, and got my welcome kit. The company culture feels genuinely collaborative. Excited for what\'s ahead!',
+    date: getGalleryDate(3),
+    tags: ['hr', 'admin'],
+    permissions: { public: false, editable: true, allowComments: true },
+    createdAt: Date.now() - 3 * 86400000,
+    updatedAt: Date.now() - 3 * 86400000,
+  },
+  {
+    id: 'demo-2',
+    type: 'note',
+    title: 'Team Standup Notes',
+    description: 'Notes from my first team standup meeting',
+    content: 'Attended my first daily standup. The team uses a round-robin format — each person shares what they\'re working on, any blockers, and wins. Key projects: Q2 product launch, API migration, and the new onboarding flow (meta!).',
+    date: getGalleryDate(2),
+    tags: ['team', 'meetings'],
+    permissions: { public: false, editable: true, allowComments: true },
+    createdAt: Date.now() - 2 * 86400000,
+    updatedAt: Date.now() - 2 * 86400000,
+  },
+  {
+    id: 'demo-3',
+    type: 'note',
+    title: 'Workstation All Set!',
+    description: 'My workspace is fully configured',
+    content: 'IT helped me get everything configured: dual monitors, keyboard, mouse, and all the dev tools. Running VS Code with the team\'s shared settings, Docker for local development, and Figma for design reviews. Ready to code!',
+    date: getGalleryDate(2),
+    tags: ['setup', 'equipment'],
+    permissions: { public: false, editable: true, allowComments: true },
+    createdAt: Date.now() - 2 * 86400000,
+    updatedAt: Date.now() - 2 * 86400000,
+  },
+  {
+    id: 'demo-4',
+    type: 'note',
+    title: 'Company Values & Culture',
+    description: 'Key takeaways from the culture session',
+    content: 'Attended the culture orientation session. Core values: transparency, continuous learning, customer obsession, and "disagree and commit." Love that they encourage healthy debate but move fast once a decision is made.',
+    date: getGalleryDate(1),
+    tags: ['admin', 'hr'],
+    permissions: { public: false, editable: true, allowComments: true },
+    createdAt: Date.now() - 86400000,
+    updatedAt: Date.now() - 86400000,
+  },
+  {
+    id: 'demo-5',
+    type: 'note',
+    title: 'Engineering Team Sync',
+    description: 'Weekly engineering sync meeting notes',
+    content: 'Joined the weekly engineering sync. Discussed the tech stack: React + TypeScript frontend, Node.js microservices, PostgreSQL. The team is migrating from a monolith — great timing to join and learn the new architecture.',
+    date: getGalleryDate(1),
+    tags: ['team', 'meetings'],
+    permissions: { public: false, editable: true, allowComments: true },
+    createdAt: Date.now() - 86400000,
+    updatedAt: Date.now() - 86400000,
+  },
+  {
+    id: 'demo-6',
+    type: 'note',
+    title: 'Benefits Overview Notes',
+    description: 'Summary of company benefits',
+    content: 'HR walked through the benefits package: health/dental/vision insurance, 401k with 4% match, unlimited PTO (encouraged to take at least 15 days), learning stipend ($1500/year), and remote work flexibility. Need to enroll by end of week 2.',
+    date: getGalleryDate(0),
+    tags: ['hr'],
+    permissions: { public: false, editable: true, allowComments: true },
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  },
+];
+
+export const DEMO_GALLERY_TAGS = ['acronym', 'important', 'follow-up', 'question', 'team', 'hr', 'admin', 'setup', 'equipment', 'meetings', 'it', 'training'];
