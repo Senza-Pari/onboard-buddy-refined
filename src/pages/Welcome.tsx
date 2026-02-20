@@ -1,11 +1,19 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Play } from 'lucide-react';
 import useImageStore from '../stores/imageStore';
+import useAuthStore from '../stores/authStore';
 
 const Welcome: React.FC = () => {
   const { welcomeBackground } = useImageStore();
+  const navigate = useNavigate();
+  const { loginAsGuest } = useAuthStore();
+
+  const handleGuestLogin = () => {
+    loginAsGuest();
+    navigate('/dashboard');
+  };
   
   return (
     <div className="min-h-screen flex flex-col relative">
@@ -50,20 +58,28 @@ const Welcome: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <Link 
-              to="/signup" 
-              className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors"
-            >
-              Sign Up Free
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            
-            <Link 
-              to="/login" 
-              className="inline-flex items-center justify-center px-8 py-3 bg-white/10 text-white rounded-lg font-medium hover:bg-white/20 transition-colors"
-            >
-              Sign In
-            </Link>
+              <button
+                onClick={handleGuestLogin}
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-primary-500 text-white rounded-lg font-medium hover:bg-primary-600 transition-colors"
+              >
+                <Play className="w-5 h-5" />
+                Explore as Guest
+              </button>
+
+              <Link 
+                to="/signup" 
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white/10 text-white rounded-lg font-medium hover:bg-white/20 transition-colors"
+              >
+                Sign Up Free
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              
+              <Link 
+                to="/login" 
+                className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white/10 text-white rounded-lg font-medium hover:bg-white/20 transition-colors"
+              >
+                Sign In
+              </Link>
           </motion.div>
         </motion.div>
       </div>
