@@ -1,84 +1,27 @@
 
+# Fix "No sign-up required" Text Placement
 
-# Redesign PDF Export to Look Like a Gamma.app Presentation
+## Problem
 
-## Current State
+The "No sign-up required - 2 minute tour" text is sitting between the buttons because it's a sibling inside a `flex-row` container. On desktop (sm+), the buttons go horizontal and the text awkwardly sits between "Start Interactive Demo" and "Sign Up Free."
 
-The PDF export is plain monospaced text with bullet points -- it looks like a terminal printout. No colors, no visual hierarchy, no branding.
+## Fix
 
-## New Design
-
-A polished, presentation-quality PDF with the visual richness of a Gamma.app deck:
-
-### Page 1: Cover Page
-- Full-page gradient background (green primary-400 to primary-700)
-- Large centered title: "Onboarding Journey Summary"
-- Subtitle with the current date
-- "Onboard Buddy" branding at the bottom
-- Clean, modern feel
-
-### Section Pages: Tasks
-- Section header banner (colored strip across the top with white text)
-- Each task rendered as a "card" -- rounded rectangle with light background fill
-- Checkmark icon (filled green circle) or empty circle for completion status
-- Priority shown as a small colored dot (red/yellow/green)
-- Department shown as a colored tag/badge
-- Due date in a subtle secondary text style
-
-### Section Pages: Missions
-- Same section header banner style
-- Each mission as a card with:
-  - Title and description
-  - A visual progress bar (filled rectangle with percentage)
-  - Reward badge shown with a star icon
-  - Completion status indicator
-
-### Section Pages: Gallery / Notes
-- Card layout for each item
-- Type badge, date, location, and tags rendered as pill shapes
-
-### Every Page
-- Subtle page number in bottom-right
-- Thin colored line at top of non-cover pages for brand consistency
-- Footer: "Onboard Buddy -- Made with love by Senza Pari in Colorado"
-
-## Files to Change
-
-| File | Change |
-|------|--------|
-| `src/pages/ContentExport.tsx` | Rewrite the PDF generation inside `handleExport` case `'pdf'` to use jsPDF drawing primitives (rect, roundedRect, setFillColor, setTextColor, circles, lines) to create the visual layout described above. The text export, email, and clipboard paths remain unchanged. |
-
-No new dependencies needed -- jsPDF already supports all the drawing operations (rectangles, circles, colors, fonts).
+Wrap the demo button and its subtitle together in a `div` so they stay grouped as a unit. The subtitle will always appear directly below the demo button regardless of screen size.
 
 ## Technical Details
 
-### jsPDF Drawing Approach
+### `src/pages/Welcome.tsx` (lines 61-68)
 
-All visuals are built from jsPDF primitives -- no images or external assets needed:
+Wrap the `<button>` and the `<p>` tag in a single `<div className="flex flex-col items-center">` so they're treated as one flex item:
 
-- **Gradient backgrounds**: Simulated with stacked thin colored rectangles transitioning hue
-- **Cards**: `doc.roundedRect(x, y, w, h, rx, ry, 'F')` with `setFillColor(248, 251, 250)` (neutral-50)
-- **Progress bars**: Two overlapping `roundedRect` calls -- gray background bar, then green filled bar proportional to progress
-- **Checkmarks**: `doc.circle(x, y, r, 'F')` in green for completed, `doc.circle(x, y, r, 'S')` outline for pending
-- **Tags/badges**: Small `roundedRect` with colored fill and white text
-- **Section headers**: Full-width colored rectangle with bold white text
+```
+<div className="flex flex-col items-center">
+  <button ...>
+    Start Interactive Demo
+  </button>
+  <p className="text-white/60 text-sm mt-2">No sign-up required - 2 minute tour</p>
+</div>
+```
 
-### Helper Functions
-
-The PDF generation will be extracted into a dedicated `generateStyledPDF` function with small helpers:
-- `drawCoverPage(doc)` -- gradient background, title, date, branding
-- `drawSectionHeader(doc, title, color)` -- colored banner at top of section
-- `drawTaskCard(doc, task, y)` -- single task card with status, priority, department
-- `drawMissionCard(doc, mission, y)` -- mission card with progress bar
-- `drawGalleryCard(doc, item, y)` -- gallery item card
-- `drawPageFooter(doc, pageNum)` -- page number and branding line
-- `ensureSpace(doc, needed, cursorY)` -- handles pagination when content won't fit
-
-### Color Palette (matching the app theme)
-- Primary green: `#39e079` (rgb 57, 224, 121)
-- Dark green: `#047857` (rgb 4, 120, 87)
-- Neutral-50 card bg: `#f8fbfa` (rgb 248, 251, 250)
-- Neutral-600 body text: `#4d7c5f` (rgb 77, 124, 95)
-- Neutral-900 headings: `#0e1a13` (rgb 14, 26, 19)
-- Priority red: `#ef4444`, yellow: `#f59e0b`, green: `#10b981`
-
+Also change `-mt-2` to `mt-2` so there's proper spacing below the button instead of a negative margin pulling it up.
