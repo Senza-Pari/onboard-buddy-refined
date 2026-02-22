@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Users, Search, Archive, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Search, Archive, RotateCcw, ChevronLeft, ChevronRight, Rocket } from 'lucide-react';
 import EmployeeFormModal from '../components/EmployeeFormModal';
 import EmployeeCard from '../components/EmployeeCard';
 import EmployeeDetailsModal from '../components/EmployeeDetailsModal';
 import EmployeeDeleteDialog from '../components/EmployeeDeleteDialog';
+import TemplateTasksStep from '../components/TemplateTasksStep';
+import TemplateMissionsStep from '../components/TemplateMissionsStep';
 import useEmployeeStore, { type Employee } from '../stores/employeeStore';
+import useTemplateStore from '../stores/templateStore';
+import useTaskStore from '../stores/taskStore';
+import useMissionStore from '../stores/missionStore';
 import useAuthStore from '../stores/authStore';
 
 const TemplateBuilder: React.FC = () => {
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  
+
   const {
     employees,
     addEmployee,
@@ -22,7 +27,12 @@ const TemplateBuilder: React.FC = () => {
     searchEmployees,
   } = useEmployeeStore();
 
-  const [currentStep] = useState(2); // Start at People step
+  const { getTemplate } = useTemplateStore();
+  const { setTasks } = useTaskStore();
+  const { setMissions } = useMissionStore();
+  
+
+  const [currentStep, setCurrentStep] = useState(0);
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [viewingEmployee, setViewingEmployee] = useState<Employee | null>(null);
@@ -30,34 +40,31 @@ const TemplateBuilder: React.FC = () => {
     isOpen: boolean;
     employee: Employee | null;
   }>({ isOpen: false, employee: null });
+  const [showDeployConfirm, setShowDeployConfirm] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [showArchived, setShowArchived] = useState(false);
 
+  const templateId = type || 'remote';
+  const template = getTemplate(templateId);
   const templateType = (type as 'remote' | 'onsite' | 'hybrid') || 'remote';
-  
+
   const steps = [
-    { id: 0, name: 'Tasks', completed: true },
-    { id: 1, name: 'Missions', completed: true },
-    { id: 2, name: 'People', completed: false },
+    { id: 0, name: 'Tasks', count: template?.tasks.length || 0 },
+    { id: 1, name: 'Missions', count: template?.missions.length || 0 },
+    { id: 2, name: 'People', count: employees.filter(e => e.status === 'active').length },
   ];
 
   // Filter employees
   const filteredEmployees = employees.filter(employee => {
-    // Status filter
     if (showArchived && employee.status !== 'archived') return false;
     if (!showArchived && employee.status === 'archived') return false;
-
-    // Search filter
     if (searchTerm) {
       const searchResults = searchEmployees(searchTerm);
       if (!searchResults.find(emp => emp.id === employee.id)) return false;
     }
-
-    // Department filter
     if (selectedDepartment && employee.department !== selectedDepartment) return false;
-
     return true;
   });
 
@@ -75,7 +82,6 @@ const TemplateBuilder: React.FC = () => {
 
   const handleUpdateEmployee = (employeeData: Omit<Employee, 'id' | 'createdAt' | 'updatedAt' | 'createdBy' | 'lastModifiedBy'>) => {
     if (!editingEmployee) return;
-    
     try {
       updateEmployee(editingEmployee.id, employeeData, user?.name || 'Unknown User', 'Employee information updated');
       setEditingEmployee(null);
@@ -104,6 +110,46 @@ const TemplateBuilder: React.FC = () => {
     }
   };
 
+  const handleDeploy = () => {
+    if (!template) return;
+
+    // Push tasks into taskStore
+    const now = new Date().toISOString();
+    setTasks(
+      template.tasks.map((t, i) => ({
+        id: i + 1,
+        title: t.title,
+        description: t.description,
+        department: t.department,
+        priority: t.priority,
+        tags: t.tags,
+        startDate: '',
+        dueDate: '',
+        completed: false,
+        createdAt: now,
+      }))
+    );
+
+    // Push missions into missionStore
+    setMissions(
+      template.missions.map((m) => ({
+        id: m.id,
+        title: m.title,
+        description: m.description,
+        requirements: m.requirements.map((r) => ({ ...r, current: 0 })),
+        deadline: undefined,
+        progress: 0,
+        completed: false,
+        createdAt: now,
+        updatedAt: now,
+        reward: m.reward,
+      }))
+    );
+
+    setShowDeployConfirm(false);
+    navigate('/dashboard');
+  };
+
   const getTemplateTitle = () => {
     switch (templateType) {
       case 'remote': return 'Remote Hire Template';
@@ -128,45 +174,52 @@ const TemplateBuilder: React.FC = () => {
       <div className="mb-8">
         <Link
           to="/templates"
-          className="inline-flex items-center text-neutral-600 hover:text-neutral-900 mb-4"
+          className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4"
         >
           <ArrowLeft size={20} className="mr-2" />
           Back to Templates
         </Link>
-
-        <h1 className="text-3xl font-bold mb-2">{getTemplateTitle()}</h1>
-        <p className="text-neutral-700">{getTemplateDescription()}</p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">{getTemplateTitle()}</h1>
+        <p className="text-muted-foreground">{getTemplateDescription()}</p>
       </div>
 
-      {/* Progress Steps */}
+      {/* Progress Steps - Clickable */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           {steps.map((step, index) => (
-            <div key={step.id} className="flex items-center">
-              <div className="flex items-center">
+            <div key={step.id} className="flex items-center flex-1">
+              <button
+                onClick={() => setCurrentStep(step.id)}
+                className="flex items-center group"
+              >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
                     step.id === currentStep
-                      ? 'bg-primary-500 text-white'
-                      : step.completed
+                      ? 'bg-primary text-primary-foreground ring-2 ring-primary/30'
+                      : step.id < currentStep
                       ? 'bg-green-500 text-white'
-                      : 'bg-neutral-200 text-neutral-600'
+                      : 'bg-muted text-muted-foreground group-hover:bg-muted-foreground/20'
                   }`}
                 >
                   {step.id + 1}
                 </div>
-                <span
-                  className={`ml-2 text-sm font-medium ${
-                    step.id === currentStep ? 'text-primary-600' : 'text-neutral-600'
-                  }`}
-                >
-                  {step.name}
-                </span>
-              </div>
+                <div className="ml-2 text-left">
+                  <span
+                    className={`block text-sm font-medium ${
+                      step.id === currentStep ? 'text-primary' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {step.name}
+                  </span>
+                  <span className="block text-xs text-muted-foreground">
+                    {step.count} {step.name.toLowerCase()}
+                  </span>
+                </div>
+              </button>
               {index < steps.length - 1 && (
                 <div
-                  className={`flex-1 h-1 mx-4 ${
-                    step.completed ? 'bg-green-500' : 'bg-neutral-200'
+                  className={`flex-1 h-0.5 mx-4 rounded ${
+                    step.id < currentStep ? 'bg-green-500' : 'bg-border'
                   }`}
                 />
               )}
@@ -175,130 +228,169 @@ const TemplateBuilder: React.FC = () => {
         </div>
       </div>
 
-      {/* Continue Button - Fixed at top */}
-      <div className="mb-6">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-colors font-medium"
-        >
-          Continue to Dashboard
-        </button>
-      </div>
-
-      {/* People Section */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Key People & Meetings</h2>
-            <p className="text-neutral-600">
-              Add the core team members or any person your new hire should get to know during onboarding.
-              These could include their manager, mentor, HR representative, or IT support contact.
-            </p>
-          </div>
-          <button
-            onClick={() => setIsAddingEmployee(true)}
-            className="bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors flex items-center gap-2"
-          >
-            <Plus size={20} />
-            Add Contact
-          </button>
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500" />
-            <input
-              type="text"
-              placeholder="Search employees..."
-              className="input-field pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <select
-            className="input-field px-3 py-2 sm:w-48"
-            value={selectedDepartment}
-            onChange={(e) => setSelectedDepartment(e.target.value)}
-          >
-            <option value="">All Departments</option>
-            {departments.map(dept => (
-              <option key={dept} value={dept}>{dept}</option>
-            ))}
-          </select>
-
-          <button
-            onClick={() => setShowArchived(!showArchived)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-              showArchived
-                ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
-                : 'bg-white border-neutral-200 text-neutral-700 hover:bg-neutral-50'
-            }`}
-          >
-            {showArchived ? <RotateCcw size={16} /> : <Archive size={16} />}
-            {showArchived ? 'Show Active' : 'Show Archived'}
-          </button>
-        </div>
-
-        {/* Employee Grid */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-sm text-neutral-600">
-            <Users size={16} />
-            <span>
-              {showArchived ? 'Archived' : 'Active'} Employees ({filteredEmployees.length})
-            </span>
-          </div>
-
-          {filteredEmployees.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {filteredEmployees.map((employee) => (
-                <EmployeeCard
-                  key={employee.id}
-                  employee={employee}
-                  onView={setViewingEmployee}
-                  onEdit={setEditingEmployee}
-                  onDelete={(emp) => setDeleteDialog({ isOpen: true, employee: emp })}
-                  onArchive={(emp) => setDeleteDialog({ isOpen: true, employee: emp })}
-                  onRestore={handleRestoreEmployee}
-                  showArchived={showArchived}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Users size={48} className="mx-auto text-neutral-400 mb-4" />
-              <h3 className="text-lg font-medium text-neutral-900 mb-2">
-                {showArchived ? 'No Archived Employees' : 'No Employees Added Yet'}
-              </h3>
-              <p className="text-neutral-600 mb-4">
-                {showArchived 
-                  ? 'There are no archived employees to display.'
-                  : 'Start building your team by adding key people for the onboarding process.'
-                }
+      {/* Step Content */}
+      {currentStep === 0 && <TemplateTasksStep templateId={templateId} />}
+      {currentStep === 1 && <TemplateMissionsStep templateId={templateId} />}
+      {currentStep === 2 && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Key People & Meetings</h2>
+              <p className="text-muted-foreground">
+                Add the core team members your new hire should get to know during onboarding.
               </p>
-              {!showArchived && (
-                <button
-                  onClick={() => setIsAddingEmployee(true)}
-                  className="bg-primary-500 text-white px-6 py-3 rounded-lg hover:bg-primary-600 transition-colors"
-                >
-                  Add Your First Contact
-                </button>
-              )}
             </div>
-          )}
-        </div>
+            <button
+              onClick={() => setIsAddingEmployee(true)}
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
+            >
+              <Plus size={20} />
+              Add Contact
+            </button>
+          </div>
 
-        {/* Finish Setup Button */}
-        <div className="flex justify-end pt-8">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="bg-primary-500 text-white px-8 py-3 rounded-lg hover:bg-primary-600 transition-colors font-medium text-lg"
-          >
-            Finish Setup
-          </button>
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search employees..."
+                className="w-full pl-10 pr-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <select
+              className="px-3 py-2 rounded-lg border border-border bg-background text-foreground text-sm sm:w-48"
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+            >
+              <option value="">All Departments</option>
+              {departments.map(dept => (
+                <option key={dept} value={dept}>{dept}</option>
+              ))}
+            </select>
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors text-sm ${
+                showArchived
+                  ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
+                  : 'bg-background border-border text-muted-foreground hover:bg-muted'
+              }`}
+            >
+              {showArchived ? <RotateCcw size={16} /> : <Archive size={16} />}
+              {showArchived ? 'Show Active' : 'Show Archived'}
+            </button>
+          </div>
+
+          {/* Employee Grid */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Users size={16} />
+              <span>
+                {showArchived ? 'Archived' : 'Active'} Employees ({filteredEmployees.length})
+              </span>
+            </div>
+
+            {filteredEmployees.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {filteredEmployees.map((employee) => (
+                  <EmployeeCard
+                    key={employee.id}
+                    employee={employee}
+                    onView={setViewingEmployee}
+                    onEdit={setEditingEmployee}
+                    onDelete={(emp) => setDeleteDialog({ isOpen: true, employee: emp })}
+                    onArchive={(emp) => setDeleteDialog({ isOpen: true, employee: emp })}
+                    onRestore={handleRestoreEmployee}
+                    showArchived={showArchived}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
+                <Users size={40} className="mx-auto text-muted-foreground mb-3" />
+                <h3 className="text-lg font-medium text-foreground mb-1">
+                  {showArchived ? 'No Archived Employees' : 'No Employees Added Yet'}
+                </h3>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  {showArchived
+                    ? 'There are no archived employees to display.'
+                    : 'Start building your team by adding key people for the onboarding process.'}
+                </p>
+                {!showArchived && (
+                  <button
+                    onClick={() => setIsAddingEmployee(true)}
+                    className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    Add Your First Contact
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
+      )}
+
+      {/* Bottom Navigation */}
+      <div className="flex items-center justify-between pt-8 mt-8 border-t border-border">
+        <button
+          onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
+          disabled={currentStep === 0}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft size={18} />
+          Back
+        </button>
+
+        {currentStep < 2 ? (
+          <button
+            onClick={() => setCurrentStep((s) => s + 1)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+          >
+            Next
+            <ChevronRight size={18} />
+          </button>
+        ) : (
+          <button
+            onClick={() => setShowDeployConfirm(true)}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors font-medium"
+          >
+            <Rocket size={18} />
+            Deploy Template
+          </button>
+        )}
       </div>
+
+      {/* Deploy Confirmation Dialog */}
+      {showDeployConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-background rounded-xl p-6 max-w-md w-full shadow-xl border border-border">
+            <h3 className="text-lg font-bold text-foreground mb-2">Deploy Template?</h3>
+            <p className="text-muted-foreground mb-1">
+              This will set up the onboarding experience for <strong className="text-foreground">{getTemplateTitle()}</strong>.
+            </p>
+            <p className="text-sm text-muted-foreground mb-6">
+              {template?.tasks.length || 0} tasks and {template?.missions.length || 0} missions will be pushed to the user's dashboard.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeployConfirm(false)}
+                className="px-4 py-2 rounded-lg border border-border text-muted-foreground hover:bg-muted text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeploy}
+                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 text-sm font-medium"
+              >
+                Deploy Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       <EmployeeFormModal
@@ -307,7 +399,6 @@ const TemplateBuilder: React.FC = () => {
         onSubmit={handleAddEmployee}
         templateType={templateType}
       />
-
       <EmployeeFormModal
         isOpen={!!editingEmployee}
         onClose={() => setEditingEmployee(null)}
@@ -315,13 +406,11 @@ const TemplateBuilder: React.FC = () => {
         initialValues={editingEmployee || undefined}
         templateType={templateType}
       />
-
       <EmployeeDetailsModal
         isOpen={!!viewingEmployee}
         onClose={() => setViewingEmployee(null)}
         employee={viewingEmployee}
       />
-
       <EmployeeDeleteDialog
         isOpen={deleteDialog.isOpen}
         employee={deleteDialog.employee}

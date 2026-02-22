@@ -83,6 +83,7 @@ interface MissionState {
   deleteMission: (id: string) => void;
   updateMissionProgress: (missionId: string) => void;
   validateMission: (mission: Partial<Mission>) => string[];
+  setMissions: (missions: Mission[]) => void;
 }
 
 const useMissionStore = create<MissionState>()(
@@ -197,6 +198,21 @@ const useMissionStore = create<MissionState>()(
         set(state => ({
           missions: state.missions.filter(m => m.id !== id)
         }));
+      },
+
+      setMissions: (missions) => {
+        const now = new Date().toISOString();
+        set({
+          missions: missions.map((m) => ({
+            ...m,
+            id: m.id || crypto.randomUUID(),
+            progress: m.progress ?? 0,
+            completed: m.completed ?? false,
+            createdAt: m.createdAt || now,
+            updatedAt: now,
+            requirements: m.requirements.map((r) => ({ ...r, current: r.current ?? 0 })),
+          })),
+        });
       },
 
       updateMissionProgress: (missionId) => {
