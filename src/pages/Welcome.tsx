@@ -58,14 +58,16 @@ const Welcome: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-              <button
-                onClick={handleGuestLogin}
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-500 text-white rounded-xl font-bold text-lg hover:bg-primary-600 transition-colors min-h-[48px] shadow-lg"
-              >
-                <Play className="w-5 h-5" />
-                Start Interactive Demo
-              </button>
-              <p className="text-white/60 text-sm -mt-2">No sign-up required • 2 minute tour</p>
+              <div className="flex flex-col items-center">
+                <button
+                  onClick={handleGuestLogin}
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-500 text-white rounded-xl font-bold text-lg hover:bg-primary-600 transition-colors min-h-[48px] shadow-lg"
+                >
+                  <Play className="w-5 h-5" />
+                  Start Interactive Demo
+                </button>
+                <p className="text-white/60 text-sm mt-2">No sign-up required • 2 minute tour</p>
+              </div>
 
               <Link 
                 to="/signup" 
