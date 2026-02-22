@@ -11,7 +11,6 @@ const DemoTour: React.FC = () => {
   const location = useLocation();
 
   const step = TOUR_STEPS[currentStep];
-  const isInteractive = step?.interactive === true;
 
   // Navigate to the correct route and scroll to top when step changes
   useEffect(() => {
@@ -33,21 +32,12 @@ const DemoTour: React.FC = () => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        {/* Overlay: hidden on interactive steps, click-to-advance on others */}
-        {!isInteractive && (
-          <div className="absolute inset-0 bg-black/50 pointer-events-auto" onClick={next} />
-        )}
-
-        {/* Tour card: top banner on interactive steps, centered card otherwise */}
+        {/* Tour card: floating top-right on all steps */}
         <motion.div
-          className={`pointer-events-auto ${
-            isInteractive
-              ? 'fixed top-4 left-4 right-4 md:left-auto md:right-6 md:top-6 md:max-w-sm md:rounded-2xl rounded-2xl shadow-xl bg-white'
-              : 'fixed left-0 right-0 bottom-0 md:bottom-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-md md:rounded-2xl rounded-t-2xl bg-white shadow-xl'
-          }`}
-          initial={{ y: isInteractive ? -60 : 100, opacity: 0 }}
+          className="pointer-events-auto fixed top-4 left-4 right-4 md:left-auto md:right-6 md:top-6 md:max-w-sm rounded-2xl shadow-xl bg-white"
+          initial={{ y: -60, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: isInteractive ? -60 : 100, opacity: 0 }}
+          exit={{ y: -60, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           key={currentStep}
         >
