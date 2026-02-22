@@ -6,7 +6,7 @@ import {
   Trophy,
   Users, 
   FileText, 
-  Image, 
+  BookOpen, 
   Menu, 
   X,
   LogOut,
@@ -61,7 +61,7 @@ const AppLayout: React.FC = () => {
     { path: '/tasks', icon: <CheckSquare size={20} />, label: 'Tasks' },
     { path: '/missions', icon: <Trophy size={20} />, label: 'Missions' },
     { path: '/people', icon: <Users size={20} />, label: 'People' },
-    { path: '/gallery', icon: <Image size={20} />, label: 'Gallery' },
+    { path: '/gallery', icon: <BookOpen size={20} />, label: 'Journal' },
     { path: '/export', icon: <FileText size={20} />, label: 'Export' },
   ];
 

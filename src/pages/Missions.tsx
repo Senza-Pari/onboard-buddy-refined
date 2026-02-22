@@ -29,6 +29,7 @@ const Missions: React.FC = () => {
       state: { 
         fromMission: true,
         missionId: mission.id,
+        missionTitle: mission.title,
         preselectedTags: mission.requirements.map(req => req.tag)
       }
     });
@@ -288,11 +289,11 @@ const Missions: React.FC = () => {
                           : mission.reward.value}
                       </span>
                     </div>
-                    <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ${
+                    <div className={`flex items-center gap-1 ${
                       mission.completed ? 'text-green-600' : 'text-primary-600'
                     }`}>
-                      <span className="text-sm">
-                        {mission.completed ? 'View Details' : 'Add to Gallery'}
+                      <span className="text-sm font-medium">
+                        {mission.completed ? 'View Details' : 'Add Journal Entry'}
                       </span>
                       <ArrowRight size={16} />
                     </div>

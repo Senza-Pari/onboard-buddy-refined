@@ -1,17 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, CheckCircle, Circle, Search, Edit2, Trash2, ChevronRight } from 'lucide-react';
+import { Plus, CheckCircle, Circle, Search, Edit2, Trash2, ChevronRight, X, BookOpen } from 'lucide-react';
 import { type Task } from '../stores/taskStore';
 import useAuthStore from '../stores/authStore';
 import useDemoTourStore from '../stores/demoTourStore';
 import { TOUR_STEPS } from '../data/demoTourSteps';
-import { useTaskData } from '../hooks/useAppData';
+import { useTaskData, useGalleryData } from '../hooks/useAppData';
 import TaskForm from '../components/TaskForm';
 import EditScreen from '../components/EditScreen';
 import TaskCelebration from '../components/TaskCelebration';
+import { addBusinessDays } from 'date-fns';
 
 const TaskList: React.FC = () => {
   const { tasks, addTask, updateTask, deleteTask, toggleTaskCompletion } = useTaskData();
+  const { addItem: addJournalEntry } = useGalleryData();
   const { user } = useAuthStore();
   const { isActive: isTourActive, currentStep } = useDemoTourStore();
   const firstIncompleteRef = useRef<HTMLDivElement>(null);
@@ -22,6 +24,10 @@ const TaskList: React.FC = () => {
   const [editingTask, setEditingTask] = useState<string | null>(null);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [quickAddTitle, setQuickAddTitle] = useState('');
+  const [promptTaskId, setPromptTaskId] = useState<number | null>(null);
+  const [promptNote, setPromptNote] = useState('');
+  const promptRef = useRef<HTMLInputElement>(null);
 
   const isTourOnTasks = isTourActive && TOUR_STEPS[currentStep]?.route === '/tasks';
 
@@ -69,6 +75,65 @@ const TaskList: React.FC = () => {
     setHasUnsavedChanges(false);
   };
 
+  const handleQuickAdd = () => {
+    if (!quickAddTitle.trim()) return;
+    const dueDate = addBusinessDays(new Date(), 5).toISOString().split('T')[0];
+    addTask({
+      title: quickAddTitle.trim(),
+      tags: [],
+      department: 'HR',
+      priority: 'medium',
+      description: '',
+      dueDate,
+      startDate: userOnboardingStartDate,
+      completed: false,
+    } as Omit<Task, 'id' | 'createdAt'>);
+    setQuickAddTitle('');
+  };
+
+  const handleTaskComplete = (task: Task) => {
+    if (!task.completed) {
+      setShowCelebration(true);
+      setPromptTaskId(task.id);
+      setPromptNote('');
+    }
+    toggleTaskCompletion(task.id);
+  };
+
+  const handlePromptSubmit = () => {
+    if (!promptNote.trim() || promptTaskId === null) {
+      setPromptTaskId(null);
+      return;
+    }
+    const task = tasks.find(t => t.id === promptTaskId);
+    if (task) {
+      addJournalEntry({
+        type: 'note',
+        title: task.title,
+        content: promptNote.trim(),
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+        tags: task.tags || [],
+        permissions: { public: false, editable: true, allowComments: true },
+      });
+    }
+    setPromptTaskId(null);
+    setPromptNote('');
+  };
+
+  useEffect(() => {
+    if (promptTaskId !== null && promptRef.current) {
+      promptRef.current.focus();
+    }
+  }, [promptTaskId]);
+
+  useEffect(() => {
+    if (promptTaskId !== null) {
+      const timer = setTimeout(() => setPromptTaskId(null), 15000);
+      return () => clearTimeout(timer);
+    }
+  }, [promptTaskId]);
+
   return (
     <div className="max-w-4xl mx-auto">
       <header className="mb-6">
@@ -77,6 +142,27 @@ const TaskList: React.FC = () => {
           Track and manage your onboarding checklist.
         </p>
       </header>
+
+      {/* Quick-add bar */}
+      <div className="mb-4">
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Quick add a task... (press Enter)"
+            className="input-field flex-1"
+            value={quickAddTitle}
+            onChange={(e) => setQuickAddTitle(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
+          />
+          <button
+            onClick={handleQuickAdd}
+            disabled={!quickAddTitle.trim()}
+            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
+          >
+            <Plus size={20} />
+          </button>
+        </div>
+      </div>
 
       <div className="mb-6 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -131,7 +217,7 @@ const TaskList: React.FC = () => {
           onClick={() => setIsAddingTask(true)}
         >
           <Plus size={20} />
-          Add New Task
+          Add Detailed Task
         </button>
       </motion.div>
 
@@ -168,8 +254,8 @@ const TaskList: React.FC = () => {
         {filteredTasks.map((task, index) => {
           const isFirstIncomplete = isTourOnTasks && !task.completed && index === filteredTasks.findIndex(t => !t.completed);
           return (
+          <React.Fragment key={task.id}>
           <motion.div 
-            key={task.id}
             ref={isFirstIncomplete ? firstIncompleteRef : undefined}
             className={`card border-l-4 ${
               task.completed 
@@ -191,12 +277,7 @@ const TaskList: React.FC = () => {
                   </motion.div>
                 )}
                 <button 
-                  onClick={() => {
-                    if (!task.completed) {
-                      setShowCelebration(true);
-                    }
-                    toggleTaskCompletion(task.id);
-                  }}
+                  onClick={() => handleTaskComplete(task)}
                 >
                   {task.completed ? (
                     <CheckCircle size={20} className="text-green-500" />
@@ -261,6 +342,36 @@ const TaskList: React.FC = () => {
               </div>
             </div>
           </motion.div>
+
+          {/* Post-completion prompt */}
+          {promptTaskId === task.id && task.completed && (
+            <motion.div
+              className="ml-8 p-3 bg-primary-50 border border-primary-200 rounded-lg flex items-center gap-2"
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <BookOpen size={16} className="text-primary-500 flex-shrink-0" />
+              <input
+                ref={promptRef}
+                type="text"
+                placeholder="How did it go? Add a quick note to your journal..."
+                className="flex-1 bg-transparent border-none outline-none text-sm text-neutral-700 placeholder-neutral-400"
+                value={promptNote}
+                onChange={(e) => setPromptNote(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handlePromptSubmit();
+                  if (e.key === 'Escape') setPromptTaskId(null);
+                }}
+              />
+              <button
+                onClick={() => setPromptTaskId(null)}
+                className="text-neutral-400 hover:text-neutral-600 flex-shrink-0"
+              >
+                <X size={14} />
+              </button>
+            </motion.div>
+          )}
+          </React.Fragment>
           );
         })}
         

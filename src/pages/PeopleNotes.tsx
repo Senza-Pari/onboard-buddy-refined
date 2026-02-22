@@ -1,65 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Search, User, Calendar, Edit, Trash2, X } from 'lucide-react';
 import ImageUpload from '../components/ImageUpload';
-
-// Sample data
-const initialPeople = [
-  {
-    id: 1,
-    name: 'Sarah Johnson',
-    role: 'Team Lead',
-    department: 'Engineering',
-    meetingDate: '2025-04-14',
-    meetingTime: '10:00 AM',
-    topics: ['Team structure', 'Current projects', 'Expectations'],
-    notes: 'Sarah has been with the company for 5 years. She oversees three project teams and will be my direct manager.',
-    followUp: 'Schedule a follow-up meeting to go over my first week progress.',
-    photoUrl: 'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
-  },
-  {
-    id: 2,
-    name: 'Michael Chen',
-    role: 'Product Manager',
-    department: 'Product',
-    meetingDate: '2025-04-16',
-    meetingTime: '2:00 PM',
-    topics: ['Product roadmap', 'User research', 'Upcoming releases'],
-    notes: 'Michael leads the product strategy for our core platform. He works closely with engineering and design teams.',
-    followUp: 'Review product documentation before our meeting.',
-    photoUrl: 'https://images.pexels.com/photos/874158/pexels-photo-874158.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
-  },
-  {
-    id: 3,
-    name: 'Emily Rodriguez',
-    role: 'UX Designer',
-    department: 'Design',
-    meetingDate: '2025-04-18',
-    meetingTime: '11:30 AM',
-    topics: ['Design system', 'User flows', 'Collaboration processes'],
-    notes: '',
-    followUp: '',
-    photoUrl: 'https://images.pexels.com/photos/762020/pexels-photo-762020.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
-  },
-];
-
-// Person type definition
-interface Person {
-  id: number;
-  name: string;
-  role: string;
-  department: string;
-  meetingDate: string;
-  meetingTime: string;
-  topics: string[];
-  notes: string;
-  followUp: string;
-  photoUrl: string;
-}
+import usePeopleStore, { type Person } from '../stores/peopleStore';
 
 const PeopleNotes: React.FC = () => {
-  const [people, setPeople] = useState<Person[]>(initialPeople);
-  const [filteredPeople, setFilteredPeople] = useState<Person[]>(initialPeople);
+  const { people, addPerson, updatePerson, deletePerson: deletePersonFromStore } = usePeopleStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
   const [isAddingPerson, setIsAddingPerson] = useState(false);
@@ -81,14 +27,11 @@ const PeopleNotes: React.FC = () => {
 
   const departments = Array.from(new Set(people.map(person => person.department)));
 
-  // Filter people based on search and department
-  const filterPeople = () => {
+  const filteredPeople = useMemo(() => {
     let filtered = people;
-    
     if (selectedDepartment) {
       filtered = filtered.filter(person => person.department === selectedDepartment);
     }
-    
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -98,16 +41,9 @@ const PeopleNotes: React.FC = () => {
           person.department.toLowerCase().includes(term)
       );
     }
-    
-    setFilteredPeople(filtered);
-  };
-
-  // Update filters when they change
-  React.useEffect(() => {
-    filterPeople();
+    return filtered;
   }, [people, selectedDepartment, searchTerm]);
 
-  // Initialize form for editing
   const startEditing = (id: number) => {
     const personToEdit = people.find(person => person.id === id);
     if (personToEdit) {
@@ -118,12 +54,10 @@ const PeopleNotes: React.FC = () => {
     }
   };
 
-  // Start viewing a person's details
   const viewPerson = (id: number) => {
     setViewingPersonId(id);
   };
 
-  // Handle form change
   const handleFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -131,7 +65,6 @@ const PeopleNotes: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Add a topic to the list
   const addTopic = () => {
     if (newTopic.trim()) {
       setFormData(prev => ({
@@ -142,7 +75,6 @@ const PeopleNotes: React.FC = () => {
     }
   };
 
-  // Remove a topic from the list
   const removeTopic = (index: number) => {
     setFormData(prev => ({
       ...prev,
@@ -150,26 +82,16 @@ const PeopleNotes: React.FC = () => {
     }));
   };
 
-  // Submit the form (add or edit)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (editingPersonId !== null) {
-      // Update existing person
-      setPeople(people.map(person => 
-        person.id === editingPersonId ? { ...person, ...formData } : person
-      ));
+      updatePerson(editingPersonId, formData);
       setEditingPersonId(null);
     } else {
-      // Add new person
-      const newPerson: Person = {
-        ...formData,
-        id: people.length > 0 ? Math.max(...people.map(p => p.id)) + 1 : 1,
-      };
-      setPeople([...people, newPerson]);
+      addPerson(formData);
     }
     
-    // Reset form
     setFormData({
       name: '',
       role: '',
@@ -184,7 +106,6 @@ const PeopleNotes: React.FC = () => {
     setIsAddingPerson(false);
   };
 
-  // Cancel form
   const cancelForm = () => {
     setFormData({
       name: '',
@@ -201,15 +122,13 @@ const PeopleNotes: React.FC = () => {
     setEditingPersonId(null);
   };
 
-  // Delete a person
-  const deletePerson = (id: number) => {
-    setPeople(people.filter(person => person.id !== id));
+  const handleDeletePerson = (id: number) => {
+    deletePersonFromStore(id);
     if (viewingPersonId === id) {
       setViewingPersonId(null);
     }
   };
 
-  // Render the form (for add or edit)
   const renderForm = () => (
     <motion.div 
       className="card mb-6"
@@ -278,13 +197,12 @@ const PeopleNotes: React.FC = () => {
             </label>
             <ImageUpload
               onUpload={(file, croppedBlob) => {
-                // In a real app, you would upload to a server
-                // For demo, we'll use object URL
                 const url = URL.createObjectURL(croppedBlob || file);
                 setFormData(prev => ({ ...prev, photoUrl: url }));
               }}
-              aspectRatio={1} // Square aspect ratio for profile photos
+              aspectRatio={1}
               enableCropping
+              persistToStorage={false}
               className="mb-4"
             />
           </div>
@@ -409,7 +327,6 @@ const PeopleNotes: React.FC = () => {
     </motion.div>
   );
 
-  // Render the person detail view
   const renderPersonDetail = () => {
     const person = people.find(p => p.id === viewingPersonId);
     
@@ -473,7 +390,7 @@ const PeopleNotes: React.FC = () => {
               </button>
               
               <button 
-                onClick={() => deletePerson(person.id)}
+                onClick={() => handleDeletePerson(person.id)}
                 className="flex items-center gap-1 px-3 py-1 rounded-lg bg-red-100 text-red-700 hover:bg-red-200"
               >
                 <Trash2 size={16} />
@@ -572,13 +489,9 @@ const PeopleNotes: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Form for adding/editing a person */}
       {(isAddingPerson || editingPersonId !== null) && renderForm()}
-      
-      {/* Detail view for a person */}
       {viewingPersonId !== null && renderPersonDetail()}
 
-      {/* List of people */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredPeople.map((person) => (
           <motion.div 

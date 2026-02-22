@@ -31,7 +31,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.dueDate || !formData.tags?.length) return;
+    if (!formData.title || !formData.dueDate) return;
 
     onSubmit({
       ...formData,
@@ -78,7 +78,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
           availableTags={tags.map(tag => tag.name)}
           onTagsChange={(tags) => setFormData({ ...formData, tags })}
           onAddNewTag={(name) => addTag({ name, color: '#3B82F6', description: '' })}
-          helperText="Add at least one tag to categorize your task"
+          helperText="Tags help categorize and link to missions (optional)"
         />
       </div>
 
@@ -139,7 +139,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
         </button>
         <button
           type="submit"
-          disabled={!formData.title || !formData.dueDate || !formData.tags?.length}
+          disabled={!formData.title || !formData.dueDate}
           className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
         >
           {initialValues ? 'Update Task' : 'Create Task'}

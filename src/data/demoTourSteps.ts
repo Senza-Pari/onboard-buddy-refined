@@ -22,7 +22,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     route: '/missions',
     title: 'Missions & Achievements 🏆',
-    body: 'Missions are bigger goals that span multiple tasks. They track automatically as you add notes and photos to your Gallery.',
+    body: 'Missions are bigger goals that span multiple tasks. They track automatically as you add notes and photos to your Journal.',
   },
   {
     route: '/people',
