@@ -26,6 +26,7 @@ interface TaskState {
   toggleTaskCompletion: (id: number) => void;
   calculateDueDate: (taskType: string, startDate: string) => string;
   validateDueDate: (dueDate: string, startDate: string) => boolean;
+  setTasks: (tasks: Task[]) => void;
 }
 
 const MIN_DURATION = 1;
@@ -152,6 +153,15 @@ const useTaskStore = create<TaskState>()(
             task.id === id ? { ...task, completed: !task.completed } : task
           ),
         })),
+
+      setTasks: (tasks) =>
+        set({
+          tasks: tasks.map((task, index) => ({
+            ...task,
+            id: task.id || index + 1,
+            createdAt: task.createdAt || new Date().toISOString(),
+          })),
+        }),
     }),
     {
       name: 'onboard-buddy-tasks',

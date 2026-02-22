@@ -19,6 +19,7 @@ interface PeopleState {
   addPerson: (person: Omit<Person, 'id'>) => void;
   updatePerson: (id: number, updates: Partial<Person>) => void;
   deletePerson: (id: number) => void;
+  setPeople: (people: Person[]) => void;
 }
 
 const initialPeople: Person[] = [
@@ -84,6 +85,12 @@ const usePeopleStore = create<PeopleState>()(
         set((state) => ({
           people: state.people.filter((p) => p.id !== id),
         }));
+      },
+
+      setPeople: (people) => {
+        set({
+          people: people.map((p, i) => ({ ...p, id: p.id || i + 1 })),
+        });
       },
     }),
     {
