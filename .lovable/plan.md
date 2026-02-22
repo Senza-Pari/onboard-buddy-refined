@@ -1,101 +1,133 @@
 
 
-# Fix Image Storage + Improve Mobile Upload Experience
+# UX Overhaul: Fewer Clicks, More Intuitive
 
-## What You'll Get
+## 1. Rename "Gallery" to "Journal"
 
-1. **Image uploads will actually work** -- right now they fail because the storage location doesn't exist yet
-2. **Mobile camera integration** -- on phones, the file picker will offer your camera directly instead of just browsing files
-3. **Graceful fallback** -- if storage upload fails for any reason, the image still saves locally so you don't lose your photo
-4. **Better format support** -- some phones report unusual file types that currently get rejected; we'll fix that
+The word "Gallery" implies a photo album. This section is really an onboarding journal where you capture notes, learnings, and photos that drive mission progress.
 
-## Changes
+**Changes:**
+- Rename everywhere: bottom nav, sidebar, dashboard card, tour steps, page header
+- Update the icon from `Image` to `BookOpen` (lucide) -- feels more like a journal
+- Update page subtitle to: "Capture notes, photos, and key moments from your onboarding"
 
-### 1. Create storage bucket (database migration)
+**Files:** `BottomNav.tsx`, `AppLayout.tsx`, `Dashboard.tsx`, `Gallery.tsx`, `demoTourSteps.ts`
 
-Set up the "images" storage location with security rules:
-- Anyone can view images (needed to display them)
-- Logged-in users can upload to their own folder
-- Logged-in users can delete their own images
+---
 
-### 2. Update `src/components/ImageUpload.tsx`
+## 2. Fix Dashboard to Show Real Data
 
-- Change file accept from specific formats to `image/*` so all mobile camera formats work (3 places: two file inputs and the drag-drop handler)
-- Add `capture="environment"` to file inputs so mobile offers the camera directly
-- In `handleFinalUpload`: if storage upload fails, fall back to a data URL instead of showing an error -- the gallery item still gets created with a warning toast that it's stored locally only
-- Lower the default `minWidth`/`minHeight` from 400 to 200 -- phone screenshots and cropped images often don't meet 400px minimum
+The dashboard currently has hardcoded meeting and notes data. It should pull from the actual People and Gallery/Journal stores.
 
-### 3. Update `src/lib/imageStorage.ts`
+**Changes:**
+- Pull upcoming meetings from the People store (sorted by meetingDate, showing next 2-3)
+- Pull recent notes from the Gallery store (sorted by date, showing latest 2-3)
+- Show empty states with action prompts ("Add your first contact" / "Start your first journal entry") instead of fake data
 
-- Relax the MIME type check: accept files with empty MIME types if the file extension looks like an image (jpg, jpeg, png, webp, heic, heif, gif)
-- This fixes uploads from some Android browsers that don't set MIME types properly
+**Files:** `Dashboard.tsx`
 
-### 4. Update `src/components/GalleryItem.tsx` and `src/components/PersonFormModal.tsx`
+---
 
-- These components currently don't pass `persistToStorage` or `folder` to `ImageUpload`, meaning they default to uploading to storage but don't handle the `uploadResult` callback
-- Add `persistToStorage={false}` to these since they already use data URLs, preventing unnecessary failed upload attempts
+## 3. Make Mission-Journal Connection Obvious
 
-## User Flow After Fix
+Right now, users have no idea that adding tagged journal entries progresses their missions. This is the core loop of the app and it's hidden.
 
-1. Tap "Add Item" in Gallery, select "Photo"
-2. Tap the upload area -- phone shows camera option directly
-3. Take photo or pick from library
-4. Photo uploads to cloud storage automatically
-5. If storage fails for any reason, photo saves locally with a subtle warning
-6. Gallery item is created either way -- no more error dead-ends
+**Changes:**
+- On each mission card, add a clear CTA: "Add Journal Entry" (instead of the hover-only "Add to Gallery" text)
+- In the Journal page, when adding an item, show a small banner: "This entry will count toward: [Mission Name]" when selected tags match a mission's requirements
+- After saving a journal entry that progresses a mission, show a toast: "Mission 'Team Connection' is now 66% complete!"
+
+**Files:** `Missions.tsx`, `Gallery.tsx` (renamed to Journal), `missionStore.ts`
+
+---
+
+## 4. Quick-Add for Tasks
+
+The current task form requires 4 fields minimum (title, tags, due date, description). For a quick check-off app, this is too heavy.
+
+**Changes:**
+- Add a quick-add bar at the top of the task list: just a text input + Enter to create
+- Auto-assign: department = "General", priority = "medium", due date = 5 business days from now, tags = []
+- Keep the full form available via "Add New Task" button for detailed entries
+- Remove the requirement for tags to be mandatory when creating tasks
+
+**Files:** `TaskList.tsx`, `TaskForm.tsx`
+
+---
+
+## 5. Post-Completion Prompt on Tasks
+
+When a user checks off a task, prompt them to capture a quick note about it. This feeds the journal and missions naturally.
+
+**Changes:**
+- After toggling a task complete, show a small inline prompt below the task: "How did it go? Add a quick note" with a text input
+- If the user types something and hits Enter, auto-create a journal entry with the task title as the title, the note as content, and the task's tags carried over
+- If the user dismisses it (clicks away or X), nothing happens -- zero friction for people who just want to check boxes
+
+**Files:** `TaskList.tsx`, hook into gallery/journal store
+
+---
+
+## 6. Persist People Data
+
+The People page loses all data on refresh because it uses `useState` with hardcoded initial data instead of a Zustand store.
+
+**Changes:**
+- Create or use the existing `employeeStore.ts` pattern to persist people data with Zustand + persist middleware
+- Migrate the hardcoded initial people into the store as defaults
+- Replace all `useState` people management in `PeopleNotes.tsx` with store calls
+
+**Files:** `PeopleNotes.tsx`, new or updated store file
+
+---
+
+## Priority Order
+
+| Priority | Change | Impact | Effort |
+|----------|--------|--------|--------|
+| 1 | Rename Gallery to Journal | Clarity | Low |
+| 2 | Fix Dashboard real data | Trust | Medium |
+| 3 | Mission-Journal connection | Core loop | Medium |
+| 4 | Quick-add tasks | Speed | Low |
+| 5 | Post-completion prompt | Engagement | Medium |
+| 6 | Persist People data | Reliability | Medium |
+
+---
 
 ## Technical Details
 
-### SQL Migration
+### Rename Gallery to Journal
+- `BottomNav.tsx`: Change label from `'Gallery'` to `'Journal'`, icon from `Image` to `BookOpen`
+- `AppLayout.tsx` sidebar: Same label and icon change
+- `Gallery.tsx`: Update page header text from "Gallery & Notes" to "Journal"
+- `Dashboard.tsx`: Update "Recent Notes" card to say "Recent Journal Entries" and link text
+- `demoTourSteps.ts`: Update the gallery tour step title/body to reference "Journal"
 
-```sql
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('images', 'images', true);
+### Dashboard Real Data
+- Import `useGalleryData` (or equivalent journal hook) and people store
+- Replace hardcoded `upcomingMeetings` array with people sorted by `meetingDate` where date is in the future
+- Replace hardcoded `recentNotes` array with actual gallery items sorted by `createdAt` descending
+- Add empty state UI for both sections
 
-CREATE POLICY "Public read access on images"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'images');
+### Mission-Journal Connection
+- In `Missions.tsx`: Make the "Add to Gallery" text always visible (not just on hover), rename to "Add Journal Entry"
+- In `Gallery.tsx`: After selecting tags on a new item, check `missionStore` for missions whose `requirements[].tag` matches any selected tag, and display a banner showing which mission(s) will progress
+- In the `addItem` flow in `useAppData.ts` or the gallery store: after adding, call `updateMissionProgress` for all missions and show a toast if any mission progressed
 
-CREATE POLICY "Authenticated users can upload images"
-  ON storage.objects FOR INSERT
-  WITH CHECK (
-    bucket_id = 'images'
-    AND auth.role() = 'authenticated'
-  );
+### Quick-Add Tasks
+- Add a simple input bar above the task list in `TaskList.tsx`
+- On Enter, call `addTask` with defaults: `{ title: inputValue, tags: [], department: 'General', priority: 'medium', description: '', dueDate: calculated, startDate: userOnboardingStartDate, completed: false, notes: '' }`
+- In `TaskForm.tsx`: Change `!formData.tags?.length` validation to allow empty tags
 
-CREATE POLICY "Users can delete own images"
-  ON storage.objects FOR DELETE
-  USING (
-    bucket_id = 'images'
-    AND auth.role() = 'authenticated'
-  );
+### Post-Completion Prompt
+- In `TaskList.tsx`, after `toggleTaskCompletion` for an incomplete task, set a `promptTaskId` state
+- Render a small inline form below that task card with a text input
+- On submit, create a journal entry via `addItem` with `title: task.title`, `content: userNote`, `tags: task.tags`, `type: 'note'`
+- Dismiss on blur, X click, or after 10 seconds
 
-CREATE POLICY "Users can update own images"
-  ON storage.objects FOR UPDATE
-  USING (
-    bucket_id = 'images'
-    AND auth.role() = 'authenticated'
-  );
-```
-
-### `src/lib/imageStorage.ts` -- MIME type fix
-
-Replace strict `file.type.startsWith('image/')` with a helper that also checks the file extension for known image formats when MIME type is empty or generic.
-
-### `src/components/ImageUpload.tsx` -- fallback logic in `handleFinalUpload`
-
-When `persistToStorage` is true and the upload fails, instead of throwing an error:
-1. Convert the file to a data URL using FileReader
-2. Call `onUpload(finalFile, croppedBlob, undefined)` so the parent can use the data URL fallback path
-3. Show a warning message ("Image saved locally -- cloud backup unavailable") instead of an error
-
-### Files changed summary
-
-| File | What changes |
-|------|-------------|
-| SQL migration | Create `images` bucket + 4 RLS policies |
-| `src/components/ImageUpload.tsx` | `accept="image/*"`, `capture="environment"`, fallback logic, lower min dimensions |
-| `src/lib/imageStorage.ts` | Relaxed MIME type validation |
-| `src/components/GalleryItem.tsx` | Add `persistToStorage={false}` to ImageUpload |
-| `src/components/PersonFormModal.tsx` | Add `persistToStorage={false}` to ImageUpload |
+### Persist People Data
+- Create `src/stores/peopleStore.ts` using Zustand with `persist` middleware
+- Move the `initialPeople` array as default store data
+- Expose `people`, `addPerson`, `updatePerson`, `deletePerson` actions
+- Refactor `PeopleNotes.tsx` to import from the store instead of using local state
 
