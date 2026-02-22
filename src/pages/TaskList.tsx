@@ -187,7 +187,7 @@ const TaskList: React.FC = () => {
                     animate={{ x: [0, 6, 0] }}
                     transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
                   >
-                    <ChevronRight size={18} className="text-primary-500" />
+                    <ChevronRight size={18} className="text-blue-500" />
                   </motion.div>
                 )}
                 <button 
@@ -201,7 +201,7 @@ const TaskList: React.FC = () => {
                   {task.completed ? (
                     <CheckCircle size={20} className="text-green-500" />
                   ) : (
-                    <Circle size={20} className={`text-neutral-400 hover:text-neutral-600 ${isFirstIncomplete ? 'tour-glow' : ''}`} />
+                    <Circle size={20} className={`${isFirstIncomplete ? 'text-blue-500 tour-glow' : 'text-neutral-400'} hover:text-neutral-600`} />
                   )}
                 </button>
               </div>
