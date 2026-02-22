@@ -24,6 +24,7 @@ import ShareWorkflowDialog from '../components/ShareWorkflowDialog';
 import useAuthStore from '../stores/authStore';
 import BottomNav from '../components/BottomNav';
 import DemoTour from '../components/DemoTour';
+import BuddyChat from '../components/BuddyChat';
 import useDemoTourStore from '../stores/demoTourStore';
 import useDemoStore from '../stores/demoStore';
 
@@ -205,6 +206,9 @@ const AppLayout: React.FC = () => {
 
         {/* Demo Tour */}
         <DemoTour />
+
+        {/* Buddy AI Chat */}
+        {!isGuest && <BuddyChat />}
 
         {/* Replay Tour FAB for guest users */}
         {isGuest && !isTourActive && (
