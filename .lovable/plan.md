@@ -1,35 +1,24 @@
 
 
-# Make Tour Callout More Obvious with Blue Glow
+# Remove Dark Overlay from All Tour Steps
 
 ## What's Changing
 
-The current `tour-glow` effect uses a subtle green glow that blends into the app's green color scheme, making it easy to miss. We'll make it dramatically more visible by:
+Currently, only the interactive step (step 2 - Tasks) has no dark shaded background overlay. All other steps show a `bg-black/50` overlay that dims the page. We'll remove this overlay from every step so the tour card always floats over the live page content, just like step 2 already does.
 
-1. **Switching to a bright blue glow** (using `#3B82F6` -- the same blue used elsewhere in the app for tags and accents) which creates strong contrast against the green/neutral theme
-2. **Making the glow bigger and bolder** -- larger box-shadow spread, stronger opacity, and a more noticeable scale pulse
-3. **Adding a blue ring/border** to the highlighted task card and checkbox for extra emphasis
-
-## Files to Change
+## Changes
 
 | File | Change |
 |------|--------|
-| `src/index.css` | Update `.tour-glow` keyframes to use bright blue (`rgba(59, 130, 246, ...)`) instead of green, increase shadow size and opacity, add a visible blue border/outline |
-| `src/pages/TaskList.tsx` | Add a blue ring class to the first uncompleted task's checkbox area and update the ChevronRight arrow color to blue to match |
+| `src/components/DemoTour.tsx` | Remove the conditional overlay `div` entirely. Use the top-positioned floating card layout (currently only used for interactive steps) for all steps, so the tour card sits in the top-right corner without blocking the page. |
 
 ## Technical Details
 
-### Updated CSS Animation (`src/index.css`)
+### DemoTour.tsx
 
-The `tour-glow-pulse` keyframes will change from:
-- Green glow: `rgba(57, 224, 121, 0.3)` with 8px/16px spread
-- To blue glow: `rgba(59, 130, 246, 0.4)` with 12px/24px spread and stronger opacity (0.6 at peak)
-- Scale pulse increases from 1.03 to 1.05 for more visible breathing
+1. Remove the `isInteractive` variable and the overlay block (lines 37-39) completely -- no more `bg-black/50` div on any step.
+2. Use the floating top-right card style for all steps (the style currently only applied when `isInteractive` is true): `fixed top-4 left-4 right-4 md:left-auto md:right-6 md:top-6 md:max-w-sm rounded-2xl shadow-xl bg-white`.
+3. Update the animation `initial`/`exit` to always slide in from the top (`y: -60`) since the card is always at the top now.
 
-The `.tour-glow` class also gets a solid `2px` blue border (`border: 2px solid rgba(59, 130, 246, 0.6)`) and `border-radius` to frame the highlighted element.
-
-### TaskList.tsx Updates
-
-- The `ChevronRight` arrow indicator color changes from `text-primary-500` (green) to `text-blue-500` (blue) to match the new glow
-- The `Circle` icon for the first uncompleted task gets a `text-blue-500` color instead of `text-neutral-400` during the tour, making the clickable target pop
+This means every step behaves like the current interactive step -- the page is fully visible and interactive behind the tour card.
 
