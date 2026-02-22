@@ -22,6 +22,18 @@ const getGalleryDate = (daysAgo: number) => {
 
 export const DEMO_TASKS: Task[] = [
   {
+    id: 4,
+    title: 'Complete W-4 tax forms',
+    tags: ['admin', 'hr'],
+    department: 'HR',
+    description: 'Fill out federal and state tax withholding forms for payroll.',
+    startDate: getStartDate(),
+    dueDate: getDueDate(5),
+    completed: false,
+    priority: 'high',
+    createdAt: new Date().toISOString(),
+  },
+  {
     id: 1,
     title: 'Submit I-9 documentation',
     tags: ['admin', 'hr'],

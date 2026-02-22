@@ -13,10 +13,13 @@ const DemoTour: React.FC = () => {
   const step = TOUR_STEPS[currentStep];
   const isInteractive = step?.interactive === true;
 
-  // Navigate to the correct route when step changes
+  // Navigate to the correct route and scroll to top when step changes
   useEffect(() => {
-    if (isActive && step && location.pathname !== step.route) {
-      navigate(step.route);
+    if (isActive && step) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (location.pathname !== step.route) {
+        navigate(step.route);
+      }
     }
   }, [isActive, currentStep, step, location.pathname, navigate]);
 
