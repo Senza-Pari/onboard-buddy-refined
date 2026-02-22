@@ -4,11 +4,14 @@ import { X, Send, Loader2, Bot, Volume2, Square } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useBuddyContext } from '../hooks/useBuddyContext';
 import useAuthStore from '../stores/authStore';
+import { supabase } from '@/integrations/supabase/client';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/onboarding-buddy`;
-const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`;
+const SUPABASE_URL = (supabase as any).supabaseUrl || import.meta.env.VITE_SUPABASE_URL || `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co`;
+const SUPABASE_KEY = (supabase as any).supabaseKey || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const CHAT_URL = `${SUPABASE_URL}/functions/v1/onboarding-buddy`;
+const TTS_URL = `${SUPABASE_URL}/functions/v1/elevenlabs-tts`;
 
 const QUICK_CHIPS = [
   "What's next?",
@@ -52,7 +55,7 @@ async function streamChat({
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
     },
     body: JSON.stringify({ messages, context }),
   });
@@ -180,8 +183,8 @@ const BuddyChatDrawer: React.FC<BuddyChatDrawerProps> = ({ isOpen, onClose }) =>
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
         },
         body: JSON.stringify({ text: plainText, voiceId: 'JBFqnCBsd6RMkjVDRZzb' }),
       });
