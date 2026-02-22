@@ -1,18 +1,38 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Loader2, Bot } from 'lucide-react';
+import { X, Send, Loader2, Bot, Volume2, Square } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useBuddyContext } from '../hooks/useBuddyContext';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/onboarding-buddy`;
+const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`;
 
 const QUICK_CHIPS = [
   "What's next?",
   "My progress",
   "Who should I meet?",
 ];
+
+function stripMarkdown(md: string): string {
+  return md
+    .replace(/#{1,6}\s+/g, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/__(.+?)__/g, '$1')
+    .replace(/_(.+?)_/g, '$1')
+    .replace(/~~(.+?)~~/g, '$1')
+    .replace(/`(.+?)`/g, '$1')
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/\[(.+?)\]\(.+?\)/g, '$1')
+    .replace(/!\[.*?\]\(.+?\)/g, '')
+    .replace(/^[-*+]\s+/gm, '')
+    .replace(/^\d+\.\s+/gm, '')
+    .replace(/^>\s+/gm, '')
+    .replace(/\n{2,}/g, '\n')
+    .trim();
+}
 
 async function streamChat({
   messages,
@@ -106,6 +126,10 @@ const BuddyChatDrawer: React.FC<BuddyChatDrawerProps> = ({ isOpen, onClose }) =>
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [playingIndex, setPlayingIndex] = useState<number | null>(null);
+  const [loadingTtsIndex, setLoadingTtsIndex] = useState<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUrlRef = useRef<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const context = useBuddyContext();
@@ -119,6 +143,75 @@ const BuddyChatDrawer: React.FC<BuddyChatDrawerProps> = ({ isOpen, onClose }) =>
       setTimeout(() => inputRef.current?.focus(), 300);
     }
   }, [isOpen]);
+
+  const stopAudio = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    if (audioUrlRef.current) {
+      URL.revokeObjectURL(audioUrlRef.current);
+      audioUrlRef.current = null;
+    }
+    setPlayingIndex(null);
+  }, []);
+
+  const playTts = useCallback(async (text: string, index: number) => {
+    // If already playing this message, stop it
+    if (playingIndex === index) {
+      stopAudio();
+      return;
+    }
+
+    // Stop any current playback
+    stopAudio();
+    setLoadingTtsIndex(index);
+
+    try {
+      const plainText = stripMarkdown(text);
+      const response = await fetch(TTS_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ text: plainText, voiceId: 'JBFqnCBsd6RMkjVDRZzb' }),
+      });
+
+      if (!response.ok) {
+        throw new Error('TTS request failed');
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      audioUrlRef.current = url;
+
+      const audio = new Audio(url);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        stopAudio();
+      };
+
+      audio.onerror = () => {
+        stopAudio();
+      };
+
+      setLoadingTtsIndex(null);
+      setPlayingIndex(index);
+      await audio.play();
+    } catch (err) {
+      console.error('TTS playback error:', err);
+      setLoadingTtsIndex(null);
+      stopAudio();
+    }
+  }, [playingIndex, stopAudio]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => stopAudio();
+  }, [stopAudio]);
 
   const send = async (text: string) => {
     const trimmed = text.trim();
@@ -164,6 +257,16 @@ const BuddyChatDrawer: React.FC<BuddyChatDrawerProps> = ({ isOpen, onClose }) =>
       ]);
       setIsLoading(false);
     }
+  };
+
+  const getTtsIcon = (index: number) => {
+    if (loadingTtsIndex === index) {
+      return <Loader2 size={14} className="animate-spin text-neutral-400" />;
+    }
+    if (playingIndex === index) {
+      return <Square size={14} className="text-primary-600" />;
+    }
+    return <Volume2 size={14} className="text-neutral-400" />;
   };
 
   return (
@@ -242,9 +345,21 @@ const BuddyChatDrawer: React.FC<BuddyChatDrawerProps> = ({ isOpen, onClose }) =>
                     }`}
                   >
                     {msg.role === 'assistant' ? (
-                      <div className="prose prose-sm prose-neutral max-w-none [&>p]:m-0 [&>ul]:my-1 [&>ol]:my-1">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
-                      </div>
+                      <>
+                        <div className="prose prose-sm prose-neutral max-w-none [&>p]:m-0 [&>ul]:my-1 [&>ol]:my-1">
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        </div>
+                        <div className="flex justify-end mt-1">
+                          <button
+                            onClick={() => playTts(msg.content, i)}
+                            disabled={loadingTtsIndex === i}
+                            className="p-1 rounded-full hover:bg-neutral-200 transition-colors disabled:cursor-wait"
+                            aria-label={playingIndex === i ? 'Stop reading' : 'Read aloud'}
+                          >
+                            {getTtsIcon(i)}
+                          </button>
+                        </div>
+                      </>
                     ) : (
                       msg.content
                     )}
