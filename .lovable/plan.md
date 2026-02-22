@@ -1,133 +1,147 @@
 
 
-# UX Overhaul: Fewer Clicks, More Intuitive
+# Build Out the Admin Template Builder
 
-## 1. Rename "Gallery" to "Journal"
+## The Problem
 
-The word "Gallery" implies a photo album. This section is really an onboarding journal where you capture notes, learnings, and photos that drive mission progress.
+The admin side (Templates) exists but is mostly a shell. An admin/manager who wants to configure the onboarding experience for a new hire currently cannot:
 
-**Changes:**
-- Rename everywhere: bottom nav, sidebar, dashboard card, tour steps, page header
-- Update the icon from `Image` to `BookOpen` (lucide) -- feels more like a journal
-- Update page subtitle to: "Capture notes, photos, and key moments from your onboarding"
+- Add, edit, or remove **tasks** from a template
+- Add, edit, or remove **missions** from a template
+- Connect the template's **people** to what the new hire sees
+- Deploy a template so a new hire gets pre-populated tasks, missions, and key contacts
 
-**Files:** `BottomNav.tsx`, `AppLayout.tsx`, `Dashboard.tsx`, `Gallery.tsx`, `demoTourSteps.ts`
+Only Step 3 (People) in the template builder has a working UI. Steps 1 and 2 are stubs.
 
----
+## What We'll Build
 
-## 2. Fix Dashboard to Show Real Data
+### 1. Template Tasks Step (Step 1 in TemplateBuilder)
 
-The dashboard currently has hardcoded meeting and notes data. It should pull from the actual People and Gallery/Journal stores.
+Add a full task management UI within the template builder:
+- List all tasks assigned to this template with title, department, priority, tags
+- "Add Task" button opens a simplified version of the existing TaskForm
+- Inline edit and delete for each task
+- Drag to reorder (optional, can be a follow-up)
 
-**Changes:**
-- Pull upcoming meetings from the People store (sorted by meetingDate, showing next 2-3)
-- Pull recent notes from the Gallery store (sorted by date, showing latest 2-3)
-- Show empty states with action prompts ("Add your first contact" / "Start your first journal entry") instead of fake data
+Data will be stored in a new `templateStore` that holds per-template configurations (tasks, missions, people) rather than mixing with the user-facing `taskStore`.
 
-**Files:** `Dashboard.tsx`
+### 2. Template Missions Step (Step 2 in TemplateBuilder)
 
----
+Add a mission management UI:
+- List all missions for this template with title, description, tag requirements
+- "Add Mission" button opens a simplified MissionForm
+- Edit and delete for each mission
+- Show tag requirement badges so the admin can see what journal tags will drive progress
 
-## 3. Make Mission-Journal Connection Obvious
+### 3. Template Store
 
-Right now, users have no idea that adding tagged journal entries progresses their missions. This is the core loop of the app and it's hidden.
+Create `src/stores/templateStore.ts` to hold template configurations:
+- Each template has an `id`, `type`, `name`, `tasks[]`, `missions[]`, `people[]`
+- Pre-populate the 3 built-in templates (Remote, Onsite, Hybrid) with their existing hardcoded data
+- Custom templates start empty
+- Persisted with Zustand persist middleware
 
-**Changes:**
-- On each mission card, add a clear CTA: "Add Journal Entry" (instead of the hover-only "Add to Gallery" text)
-- In the Journal page, when adding an item, show a small banner: "This entry will count toward: [Mission Name]" when selected tags match a mission's requirements
-- After saving a journal entry that progresses a mission, show a toast: "Mission 'Team Connection' is now 66% complete!"
+### 4. Deploy/Apply Template
 
-**Files:** `Missions.tsx`, `Gallery.tsx` (renamed to Journal), `missionStore.ts`
+Add a "Deploy Template" flow:
+- When admin clicks "Finish Setup", the template's tasks get pushed into `taskStore`, missions into `missionStore`, and people into `peopleStore`
+- This replaces the hardcoded INITIAL_TASKS and INITIAL_MISSIONS with whatever the admin configured
+- Show a confirmation: "This will set up the onboarding for [template name]. Continue?"
 
----
+### 5. Make Steps Navigable
 
-## 4. Quick-Add for Tasks
-
-The current task form requires 4 fields minimum (title, tags, due date, description). For a quick check-off app, this is too heavy.
-
-**Changes:**
-- Add a quick-add bar at the top of the task list: just a text input + Enter to create
-- Auto-assign: department = "General", priority = "medium", due date = 5 business days from now, tags = []
-- Keep the full form available via "Add New Task" button for detailed entries
-- Remove the requirement for tags to be mandatory when creating tasks
-
-**Files:** `TaskList.tsx`, `TaskForm.tsx`
-
----
-
-## 5. Post-Completion Prompt on Tasks
-
-When a user checks off a task, prompt them to capture a quick note about it. This feeds the journal and missions naturally.
-
-**Changes:**
-- After toggling a task complete, show a small inline prompt below the task: "How did it go? Add a quick note" with a text input
-- If the user types something and hits Enter, auto-create a journal entry with the task title as the title, the note as content, and the task's tags carried over
-- If the user dismisses it (clicks away or X), nothing happens -- zero friction for people who just want to check boxes
-
-**Files:** `TaskList.tsx`, hook into gallery/journal store
-
----
-
-## 6. Persist People Data
-
-The People page loses all data on refresh because it uses `useState` with hardcoded initial data instead of a Zustand store.
-
-**Changes:**
-- Create or use the existing `employeeStore.ts` pattern to persist people data with Zustand + persist middleware
-- Migrate the hardcoded initial people into the store as defaults
-- Replace all `useState` people management in `PeopleNotes.tsx` with store calls
-
-**Files:** `PeopleNotes.tsx`, new or updated store file
-
----
-
-## Priority Order
-
-| Priority | Change | Impact | Effort |
-|----------|--------|--------|--------|
-| 1 | Rename Gallery to Journal | Clarity | Low |
-| 2 | Fix Dashboard real data | Trust | Medium |
-| 3 | Mission-Journal connection | Core loop | Medium |
-| 4 | Quick-add tasks | Speed | Low |
-| 5 | Post-completion prompt | Engagement | Medium |
-| 6 | Persist People data | Reliability | Medium |
+Currently `currentStep` is hardcoded to 2. Change it to be interactive:
+- Clicking step indicators navigates between steps
+- Each step shows its respective content (Tasks, Missions, People)
+- "Next" and "Back" buttons at the bottom of each step
+- Progress tracked per step (e.g., "3 tasks added", "2 missions configured")
 
 ---
 
 ## Technical Details
 
-### Rename Gallery to Journal
-- `BottomNav.tsx`: Change label from `'Gallery'` to `'Journal'`, icon from `Image` to `BookOpen`
-- `AppLayout.tsx` sidebar: Same label and icon change
-- `Gallery.tsx`: Update page header text from "Gallery & Notes" to "Journal"
-- `Dashboard.tsx`: Update "Recent Notes" card to say "Recent Journal Entries" and link text
-- `demoTourSteps.ts`: Update the gallery tour step title/body to reference "Journal"
+### New file: `src/stores/templateStore.ts`
 
-### Dashboard Real Data
-- Import `useGalleryData` (or equivalent journal hook) and people store
-- Replace hardcoded `upcomingMeetings` array with people sorted by `meetingDate` where date is in the future
-- Replace hardcoded `recentNotes` array with actual gallery items sorted by `createdAt` descending
-- Add empty state UI for both sections
+```
+interface TemplateConfig {
+  id: string;
+  type: 'remote' | 'onsite' | 'hybrid' | 'custom';
+  name: string;
+  tasks: TemplateTask[];
+  missions: TemplateMission[];
+  people: string[]; // employee IDs from employeeStore
+}
 
-### Mission-Journal Connection
-- In `Missions.tsx`: Make the "Add to Gallery" text always visible (not just on hover), rename to "Add Journal Entry"
-- In `Gallery.tsx`: After selecting tags on a new item, check `missionStore` for missions whose `requirements[].tag` matches any selected tag, and display a banner showing which mission(s) will progress
-- In the `addItem` flow in `useAppData.ts` or the gallery store: after adding, call `updateMissionProgress` for all missions and show a toast if any mission progressed
+interface TemplateTask {
+  id: string;
+  title: string;
+  description: string;
+  department: 'HR' | 'IT' | 'Manager';
+  priority: 'high' | 'medium' | 'low';
+  tags: string[];
+  durationDays: number; // business days from start date
+}
 
-### Quick-Add Tasks
-- Add a simple input bar above the task list in `TaskList.tsx`
-- On Enter, call `addTask` with defaults: `{ title: inputValue, tags: [], department: 'General', priority: 'medium', description: '', dueDate: calculated, startDate: userOnboardingStartDate, completed: false, notes: '' }`
-- In `TaskForm.tsx`: Change `!formData.tags?.length` validation to allow empty tags
+interface TemplateMission {
+  id: string;
+  title: string;
+  description: string;
+  requirements: { tag: string; count: number }[];
+  reward: { type: 'points' | 'badge' | 'achievement'; value: number | string };
+}
+```
 
-### Post-Completion Prompt
-- In `TaskList.tsx`, after `toggleTaskCompletion` for an incomplete task, set a `promptTaskId` state
-- Render a small inline form below that task card with a text input
-- On submit, create a journal entry via `addItem` with `title: task.title`, `content: userNote`, `tags: task.tags`, `type: 'note'`
-- Dismiss on blur, X click, or after 10 seconds
+Pre-populated with the existing hardcoded data from `taskStore` (4 tasks) and `missionStore` (3 missions) mapped into all 3 built-in templates.
 
-### Persist People Data
-- Create `src/stores/peopleStore.ts` using Zustand with `persist` middleware
-- Move the `initialPeople` array as default store data
-- Expose `people`, `addPerson`, `updatePerson`, `deletePerson` actions
-- Refactor `PeopleNotes.tsx` to import from the store instead of using local state
+### Updated: `src/pages/TemplateBuilder.tsx`
 
+- Remove hardcoded `currentStep = 2`, make it `useState(0)`
+- Add step navigation (clickable step indicators + Next/Back buttons)
+- Step 0: Render a `TemplateTasksStep` component showing template tasks with add/edit/delete
+- Step 1: Render a `TemplateMissionsStep` component showing template missions with add/edit/delete
+- Step 2: Keep existing People UI (already works)
+- "Finish Setup" calls a `deployTemplate()` function that pushes template data into the user-facing stores
+
+### New components
+
+| Component | Purpose |
+|-----------|---------|
+| `src/components/TemplateTasksStep.tsx` | Task list + add/edit within template builder |
+| `src/components/TemplateMissionsStep.tsx` | Mission list + add/edit within template builder |
+| `src/components/TemplateTaskForm.tsx` | Simplified task form for template context |
+| `src/components/TemplateMissionForm.tsx` | Simplified mission form for template context |
+
+### Updated: `src/stores/taskStore.ts`
+
+- Add a `setTasks(tasks: Task[])` action that replaces the entire task list (used by template deploy)
+- Keep `INITIAL_TASKS` as the fallback when no template has been deployed
+
+### Updated: `src/stores/missionStore.ts`
+
+- Add a `setMissions(missions: Mission[])` action that replaces the entire mission list (used by template deploy)
+- Keep `INITIAL_MISSIONS` as the fallback
+
+### Updated: `src/stores/peopleStore.ts`
+
+- Add a `setPeople(people: Person[])` action for template deploy
+
+---
+
+## User Flow (Admin)
+
+1. Go to Templates, pick "Remote Hire Template"
+2. **Step 1 - Tasks**: See 4 pre-loaded tasks. Add "Set up VPN access", edit "Meet with manager" to change priority, delete "Submit I-9" if not needed
+3. **Step 2 - Missions**: See 3 pre-loaded missions. Add "Security Training" mission with tag requirements
+4. **Step 3 - People**: Add key contacts (manager, IT support, HR rep)
+5. Click "Finish Setup" -- tasks, missions, and people are pushed to the user-facing stores
+6. New hire logs in and sees exactly what the admin configured
+
+## Priority Order
+
+| Priority | Change | Impact | Effort |
+|----------|--------|--------|--------|
+| 1 | Template store | Foundation for everything | Medium |
+| 2 | Step navigation in TemplateBuilder | Unlocks Steps 1 and 2 | Low |
+| 3 | Tasks step UI | Core admin functionality | Medium |
+| 4 | Missions step UI | Core admin functionality | Medium |
+| 5 | Deploy template flow | Connects admin to user experience | Medium |
