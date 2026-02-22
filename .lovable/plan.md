@@ -1,67 +1,57 @@
 
 
-# Voice Mode for Buddy (ElevenLabs TTS)
+# Enable Buddy for Demo Users with Usage Limits
 
 ## Overview
 
-Add a "read aloud" button to each of Buddy's chat responses. When tapped, the message is sent to ElevenLabs TTS via a backend function, and the audio plays back in the browser.
+Make Buddy accessible to all users (including demo/guest) while adding a usage cap to prevent excessive API costs during demos.
 
-## Steps
+## Changes
 
-### 1. Store the ElevenLabs API Key
-- Securely store your API key as a backend secret (`ELEVENLABS_API_KEY`)
-- You'll be prompted with a secure input field to paste it in
+### 1. Remove Guest Restriction (`src/layouts/AppLayout.tsx`)
+- Change `{!isGuest && <BuddyChat />}` to always render `<BuddyChat />`
+- Move the "Replay Tour" sparkle button to coexist (shift it up so both FABs stack)
 
-### 2. Create Backend Function: `elevenlabs-tts`
-- Receives `{ text, voiceId }` from the client
-- Calls the ElevenLabs TTS API (`/v1/text-to-speech/{voiceId}`)
-- Uses `eleven_turbo_v2_5` model for low-latency playback
-- Returns raw MP3 audio bytes to the client
-- Handles errors (rate limits, invalid key, etc.)
+### 2. Add Buddy to Bottom Nav (`src/components/BottomNav.tsx`)
+- Add "Buddy" as a 6th item with `MessageCircle` icon
+- Instead of navigating, it opens the `BuddyChatDrawer` via local state
+- This makes Buddy immediately visible on mobile
 
-### 3. Update `BuddyChatDrawer.tsx`
-- Add a small speaker/volume icon button on each assistant message bubble
-- When clicked:
-  - Icon changes to a loading spinner
-  - Fetches audio from the `elevenlabs-tts` function
-  - Plays audio using the browser's `Audio` API
-  - Icon changes to a "stop" icon while playing (click to stop)
-  - Returns to speaker icon when done
-- Only one message plays at a time (clicking another stops the current one)
+### 3. Add Usage Limit for Demo Users (`src/components/BuddyChatDrawer.tsx`)
+- Track message count in component state (resets on page refresh, which is fine for demo)
+- Cap at **10 messages per session** for guest users (demo-user)
+- When limit is reached, show a friendly message: "You've used all 10 demo messages! Sign up for unlimited access."
+- Disable the input and show a sign-up CTA button
+- Authenticated users get unlimited usage (no cap)
 
-### 4. Voice Selection
-- Default voice: **George** (`JBFqnCBsd6RMkjVDRZzb`) -- a friendly, clear male voice suitable for an assistant
-- No voice picker in this first version (can be added later)
-
-## UI Preview
-
-Each assistant message will look like:
-
-```
-+------------------------------------------+
-| Buddy's response text here...            |
-|                                    [speaker icon] |
-+------------------------------------------+
-```
-
-The speaker icon sits at the bottom-right of the assistant bubble. States:
-- Default: Volume2 icon (muted gray)
-- Loading: Loader2 spinner
-- Playing: Square "stop" icon (primary color)
+### 4. Improve Desktop FAB Visibility (`src/components/BuddyChat.tsx`)
+- Add an "Ask Buddy" text label that shows on first render, then collapses to icon-only after first open (tracked via `localStorage`)
+- Add a subtle pulse animation for undiscovered state
 
 ## Technical Details
 
-- Voice: George (JBFqnCBsd6RMkjVDRZzb), model: eleven_turbo_v2_5
-- Output format: mp3_44100_128 (passed as query parameter, not body)
-- Audio fetched via `fetch()` with `.blob()` (not the SDK, to avoid JSON parsing of binary data)
-- `URL.createObjectURL()` for playback, revoked after use
-- Markdown is stripped from text before sending to TTS (plain text only)
-- Messages over 5000 characters are truncated with a notice
+**Usage tracking (BuddyChatDrawer):**
+- Add state: `const [messageCount, setMessageCount] = useState(0)`
+- Import `useAuthStore` to check `user?.id === 'demo-user'`
+- Increment `messageCount` on each `send()` call
+- Before sending, check if `isGuest && messageCount >= 10` -- if so, show limit message instead
+- Display remaining count in header: "8/10 messages" for guests
 
-## Files Changed/Created
+**BottomNav Buddy tab:**
+- Import `BuddyChatDrawer` and `useState`
+- Add a button (not NavLink) as the 6th item that toggles `isBuddyOpen`
+- Render `<BuddyChatDrawer isOpen={isBuddyOpen} onClose={() => setIsBuddyOpen(false)} />`
 
-| File | Action |
+**AppLayout FAB stacking:**
+- Show both Buddy FAB and Replay Tour FAB for guests
+- Replay Tour button moves to `bottom-36` (above Buddy's `bottom-20`) on mobile
+
+## Files Changed
+
+| File | Change |
 |------|--------|
-| `supabase/functions/elevenlabs-tts/index.ts` | Create |
-| `src/components/BuddyChatDrawer.tsx` | Update (add speaker button per assistant message) |
+| `src/layouts/AppLayout.tsx` | Remove `!isGuest` guard; stack both FABs for guests |
+| `src/components/BottomNav.tsx` | Add Buddy as 6th nav item opening the chat drawer |
+| `src/components/BuddyChatDrawer.tsx` | Add 10-message session cap for demo users with sign-up CTA |
+| `src/components/BuddyChat.tsx` | Add "Ask Buddy" label + pulse for desktop; hide on mobile (bottom nav handles it) |
 
