@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, CheckSquare, Trophy, Users, Image } from 'lucide-react';
+import useDemoTourStore from '../stores/demoTourStore';
 
 const navItems = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'Home' },
@@ -11,6 +12,8 @@ const navItems = [
 ];
 
 const BottomNav: React.FC = () => {
+  const { isActive: isTourActive } = useDemoTourStore();
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-neutral-200 md:hidden bottom-nav-safe">
       <div className="flex items-center justify-around h-16">
@@ -20,9 +23,11 @@ const BottomNav: React.FC = () => {
             to={path}
             className={({ isActive }) =>
               `flex flex-col items-center justify-center min-w-[44px] min-h-[44px] px-2 py-1 rounded-lg transition-colors ${
-                isActive
-                  ? 'text-primary-600'
-                  : 'text-neutral-500 hover:text-neutral-700'
+                isActive && isTourActive
+                  ? 'text-primary-600 tour-glow'
+                  : isActive
+                    ? 'text-primary-600'
+                    : 'text-neutral-500 hover:text-neutral-700'
               }`
             }
           >

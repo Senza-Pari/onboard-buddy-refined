@@ -116,9 +116,11 @@ const AppLayout: React.FC = () => {
                       to={item.path}
                       className={({ isActive }) => `
                         flex items-center px-4 py-3 text-sm font-medium rounded-lg mx-2
-                        ${isActive 
-                          ? 'bg-primary-100 text-primary-700' 
-                          : 'text-neutral-700 hover:bg-neutral-100'
+                        ${isActive && isTourActive
+                          ? 'bg-primary-200 text-primary-700 tour-glow'
+                          : isActive 
+                            ? 'bg-primary-100 text-primary-700' 
+                            : 'text-neutral-700 hover:bg-neutral-100'
                         }
                       `}
                       onClick={() => setIsSidebarOpen(false)}
