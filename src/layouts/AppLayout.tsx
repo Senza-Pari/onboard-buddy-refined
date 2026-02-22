@@ -208,13 +208,13 @@ const AppLayout: React.FC = () => {
         <DemoTour />
 
         {/* Buddy AI Chat */}
-        {!isGuest && <BuddyChat />}
+        <BuddyChat />
 
         {/* Replay Tour FAB for guest users */}
         {isGuest && !isTourActive && (
           <motion.button
             onClick={handleReplayTour}
-            className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-40 w-12 h-12 rounded-full bg-primary-500 text-white shadow-lg hover:bg-primary-600 flex items-center justify-center transition-colors"
+            className="fixed bottom-36 right-4 md:bottom-20 md:right-6 z-40 w-12 h-12 rounded-full bg-primary-500 text-white shadow-lg hover:bg-primary-600 flex items-center justify-center transition-colors"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             whileHover={{ scale: 1.1 }}
