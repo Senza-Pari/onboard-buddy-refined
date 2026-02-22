@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Loader2, Bot, Volume2, Square } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useBuddyContext } from '../hooks/useBuddyContext';
+import useAuthStore from '../stores/authStore';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -122,17 +123,23 @@ interface BuddyChatDrawerProps {
   onClose: () => void;
 }
 
+const DEMO_MSG_LIMIT = 10;
+
 const BuddyChatDrawer: React.FC<BuddyChatDrawerProps> = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const [loadingTtsIndex, setLoadingTtsIndex] = useState<number | null>(null);
+  const [messageCount, setMessageCount] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const context = useBuddyContext();
+  const { user } = useAuthStore();
+  const isGuest = user?.id === 'demo-user';
+  const isLimitReached = isGuest && messageCount >= DEMO_MSG_LIMIT;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -215,7 +222,9 @@ const BuddyChatDrawer: React.FC<BuddyChatDrawerProps> = ({ isOpen, onClose }) =>
 
   const send = async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || isLoading) return;
+    if (!trimmed || isLoading || isLimitReached) return;
+
+    setMessageCount((c) => c + 1);
 
     const userMsg: Msg = { role: 'user', content: trimmed };
     setMessages((prev) => [...prev, userMsg]);
@@ -299,7 +308,11 @@ const BuddyChatDrawer: React.FC<BuddyChatDrawerProps> = ({ isOpen, onClose }) =>
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-neutral-900">Buddy</h3>
-                  <p className="text-xs text-neutral-500">Your onboarding assistant</p>
+                  <p className="text-xs text-neutral-500">
+                    {isGuest
+                      ? `${Math.max(0, DEMO_MSG_LIMIT - messageCount)}/${DEMO_MSG_LIMIT} messages left`
+                      : 'Your onboarding assistant'}
+                  </p>
                 </div>
               </div>
               <button
@@ -380,25 +393,39 @@ const BuddyChatDrawer: React.FC<BuddyChatDrawerProps> = ({ isOpen, onClose }) =>
 
             {/* Input */}
             <div className="px-4 py-3 border-t border-neutral-100 pb-safe">
-              <div className="flex items-center gap-2">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && send(input)}
-                  placeholder="Ask Buddy anything..."
-                  className="flex-1 px-4 py-2.5 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent"
-                  disabled={isLoading}
-                />
-                <button
-                  onClick={() => send(input)}
-                  disabled={!input.trim() || isLoading}
-                  className="p-2.5 rounded-lg bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  <Send size={16} />
-                </button>
-              </div>
+              {isLimitReached ? (
+                <div className="text-center space-y-2">
+                  <p className="text-sm text-neutral-600">
+                    You've used all {DEMO_MSG_LIMIT} demo messages! 🎉
+                  </p>
+                  <a
+                    href="/signup"
+                    className="inline-block px-4 py-2 text-sm font-medium rounded-lg bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+                  >
+                    Sign up for unlimited access
+                  </a>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && send(input)}
+                    placeholder="Ask Buddy anything..."
+                    className="flex-1 px-4 py-2.5 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent"
+                    disabled={isLoading}
+                  />
+                  <button
+                    onClick={() => send(input)}
+                    disabled={!input.trim() || isLoading}
+                    className="p-2.5 rounded-lg bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Send size={16} />
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         </>
