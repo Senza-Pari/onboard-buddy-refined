@@ -19,14 +19,14 @@ const Welcome: React.FC = () => {
     <div className="min-h-screen flex flex-col relative">
       {/* Background image with overlay */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-top bg-no-repeat"
         style={{ backgroundImage: `url(${welcomeBackground})` }}
       >
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
       </div>
 
       {/* Content */}
-      <div className="relative flex-1 flex items-center justify-center px-4 py-12">
+      <div className="relative flex-1 flex items-end justify-center px-4 pb-16 md:pb-20">
         <motion.div 
           className="max-w-3xl mx-auto text-center"
           initial={{ opacity: 0, y: 20 }}
@@ -39,7 +39,7 @@ const Welcome: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            Transform Your Onboarding Experience
+            Your Superpower Starts Here
           </motion.h1>
           
           <motion.p
@@ -48,8 +48,7 @@ const Welcome: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            Create seamless onboarding journeys for your team. Track progress, connect with 
-            colleagues, and make every new hire's first days memorable.
+            Every hero has a first day. Track your missions, meet your team, and own your onboarding journey from day one.
           </motion.p>
 
           <motion.div 
@@ -64,7 +63,7 @@ const Welcome: React.FC = () => {
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary-500 text-white rounded-xl font-bold text-lg hover:bg-primary-600 transition-colors min-h-[48px] shadow-lg"
                 >
                   <Play className="w-5 h-5" />
-                  Start Interactive Demo
+                  Begin Your Origin Story
                 </button>
                 <p className="text-white/60 text-sm mt-2">No sign-up required • 2 minute tour</p>
               </div>
