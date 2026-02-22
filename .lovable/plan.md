@@ -1,107 +1,62 @@
 
 
-# Fix Demo Tour: Interactive Steps, Always-Available Restart, and Celebration Feedback
+# Highlight Active Nav Tab During Demo Tour
 
-## Issues Found
+## What We're Fixing
 
-1. **Tour overlay blocks interaction**: The `bg-black/50 pointer-events-auto` overlay covers the entire screen, preventing users from actually tapping tasks even though the hint says "Try checking off a task right now!" Clicking anywhere on the overlay calls `skip()`, which kills the tour entirely.
+During the guided demo tour, when the tour navigates between pages (Dashboard, Tasks, Missions, etc.), the corresponding sidebar tab (desktop) and bottom nav tab (mobile) should visually "call out" to the user so it's crystal clear which section they're in. Right now the active tab just gets a subtle green background -- easy to miss, especially for first-time users.
 
-2. **No way to restart the tour**: Once the tour is skipped or completed, there is no UI to re-launch it. A user who arrived via a bookmark or who dismissed it early has no way back.
+## The Approach: Animated Glow + Pulse on Tour-Active Nav Items
 
-3. **No celebration/feedback when completing a task**: Checking off a task has no visual reward — just a green checkmark swap. For a demo experience, this is a missed opportunity for delight.
+When the demo tour is active, the nav item matching the current tour step's route gets a glowing, pulsing highlight effect. This works on both the sidebar (desktop) and bottom nav (mobile).
 
----
+### Visual Effect
 
-## Solution
+- A soft green glow/shadow radiates outward from the active nav item (`box-shadow` with `primary-400` color)
+- A gentle pulse animation makes the glow breathe in and out (2s cycle)
+- The effect only appears when the demo tour is running -- normal navigation keeps its current clean styling
 
-### 1. Make the tour non-blocking on interactive steps
+### Desktop Sidebar
 
-Change `DemoTour.tsx` so that on steps with an `actionHint` (currently step 2 — Tasks), the dark overlay is removed and the tour card floats as a non-blocking bottom sheet / floating card. This lets users actually interact with the page content underneath.
+The active `NavLink` in the sidebar gets an additional CSS class during the tour that adds:
+- A green glow shadow (`shadow-[0_0_12px_rgba(57,224,121,0.5)]`)
+- A subtle scale-up pulse via a CSS keyframe animation
+- A brighter background (`bg-primary-200` instead of `bg-primary-100`)
 
-- Add an `interactive` boolean field to the `TourStep` interface in `demoTourSteps.ts`
-- When `step.interactive === true`, skip the full-screen overlay and instead render only the tooltip card (positioned at top on mobile, or top-right on desktop) with a subtle semi-transparent backdrop that does NOT capture pointer events
-- The tour card stays visible while the user interacts with the page
+### Mobile Bottom Nav
 
-### 2. Add a "Restart Tour" button accessible anytime
-
-Add a small floating help/tour button visible to guest users at all times:
-
-- In `AppLayout.tsx`, render a small floating action button (FAB) in the bottom-right corner (above the bottom nav on mobile) when the user is a guest AND the tour is not currently active
-- Icon: a `HelpCircle` or `Sparkles` icon with a tooltip "Replay Tour"
-- Tapping it calls `demoTourStore.start()` and also calls `demoStore.reset()` to restore the canonical demo data so the tour experience is fresh
-- On desktop, this can also appear as a sidebar menu item labeled "Replay Demo Tour"
-
-### 3. Add task completion celebration
-
-When a guest user checks off a task, show a brief animated celebration:
-
-- Create a small `TaskCelebration` component that renders a confetti burst or a satisfying checkmark animation using Framer Motion
-- In `TaskList.tsx`, when `toggleTaskCompletion` is called and the task transitions from incomplete to complete, trigger the celebration overlay for ~1.5 seconds
-- The celebration is a centered animated checkmark with a "Nice work!" message that auto-dismisses
-- Keep it lightweight — pure CSS/Framer Motion, no new dependencies
-
----
+The active icon in the bottom nav gets:
+- The same glow effect around the icon
+- A small animated ring/circle behind the icon that pulses
 
 ## Files to Change
 
-### Modified Files
-
 | File | Change |
 |------|--------|
-| `src/data/demoTourSteps.ts` | Add `interactive: boolean` field to step 2 (Tasks) |
-| `src/components/DemoTour.tsx` | When `step.interactive` is true, remove the blocking overlay; render tour card as a non-blocking floating element instead |
-| `src/stores/demoTourStore.ts` | No change needed — `start()` already resets to step 0 |
-| `src/layouts/AppLayout.tsx` | Add a floating "Replay Tour" button for guest users when tour is inactive |
-| `src/pages/TaskList.tsx` | Add celebration animation when a task is toggled to complete |
+| `src/layouts/AppLayout.tsx` | Import `useDemoTourStore` and pass `isTourActive` context to sidebar nav item classNames. When tour is active and the item matches the current step route, add the glow class. |
+| `src/components/BottomNav.tsx` | Import `useDemoTourStore` and `TOUR_STEPS`. Add the same glow/pulse class to the matching bottom nav item during the tour. |
+| `src/index.css` | Add a `.tour-glow` utility class with keyframe animation for the pulsing green glow effect. |
 
-### New Files
-
-| File | Purpose |
-|------|---------|
-| `src/components/TaskCelebration.tsx` | Animated celebration overlay (checkmark + "Nice work!" text) shown briefly on task completion |
-
----
+No new files or dependencies needed.
 
 ## Technical Details
 
-### DemoTour.tsx Changes
+### New CSS in `src/index.css`
+
+A `@keyframes tour-glow-pulse` animation that oscillates a green box-shadow between subtle and bright, plus a `.tour-glow` class that applies it. This keeps the animation declarative and reusable across both nav components.
+
+### Sidebar NavLink Logic (AppLayout.tsx)
 
 ```text
-Current behavior:
-  - Full-screen overlay with pointer-events-auto on ALL steps
-  - Clicking overlay calls skip() -> tour ends
-
-New behavior:
-  - Non-interactive steps (0, 2-5): Keep the overlay but clicking it goes to NEXT step instead of skip
-  - Interactive step (1 - Tasks): No overlay at all; tour card is positioned at the top of the screen
-    as a floating banner so the task list below remains fully tappable
-  - Skip button still available on the card itself via the X button
+Current: isActive ? 'bg-primary-100 text-primary-700' : '...'
+New:     isActive && isTourActive ? 'bg-primary-200 text-primary-700 tour-glow' 
+         : isActive ? 'bg-primary-100 text-primary-700' : '...'
 ```
 
-### Floating Replay Button
+### BottomNav Logic
 
-```text
-Position: fixed bottom-20 right-4 (above bottom nav on mobile), bottom-6 right-6 on desktop
-Visibility: only when user.id === 'demo-user' AND !demoTourStore.isActive
-Behavior: onClick -> demoStore.reset() then demoTourStore.start()
-Style: 48px circle, primary-500 background, white icon, subtle shadow + pulse animation
-```
+Same pattern: when `isTourActive` and `isActive`, add the `tour-glow` class to the nav link, making the icon glow and pulse.
 
-### TaskCelebration Component
+### Animation Style
 
-```text
-Trigger: when toggleTaskCompletion flips a task from completed=false to completed=true
-Animation: scale-in checkmark icon (green) + "Nice work!" text, auto-dismiss after 1.5s
-Position: fixed center of screen, z-50
-Built with: Framer Motion (already installed), no new deps
-```
-
-### Overlay Click Behavior Change
-
-Instead of `onClick={skip}` on the overlay, change to `onClick={next}` so tapping anywhere advances the tour rather than ending it abruptly. The X button and "Skip tour" text remain for intentional dismissal.
-
----
-
-## Summary
-
-Three targeted fixes, one new component, no new dependencies. The tour becomes usable (non-blocking on interactive steps), recoverable (replay button always available), and delightful (celebration on task completion).
+The glow is elegant and not distracting -- a soft breathing effect rather than a flashy strobe. It uses the existing primary green color so it feels cohesive with the brand.
