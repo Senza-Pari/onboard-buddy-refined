@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, CheckCircle, Circle, Search, Edit2, Trash2 } from 'lucide-react';
+import { Plus, CheckCircle, Circle, Search, Edit2, Trash2, ChevronRight } from 'lucide-react';
 import { type Task } from '../stores/taskStore';
 import useAuthStore from '../stores/authStore';
+import useDemoTourStore from '../stores/demoTourStore';
+import { TOUR_STEPS } from '../data/demoTourSteps';
 import { useTaskData } from '../hooks/useAppData';
 import TaskForm from '../components/TaskForm';
 import EditScreen from '../components/EditScreen';
@@ -11,6 +13,8 @@ import TaskCelebration from '../components/TaskCelebration';
 const TaskList: React.FC = () => {
   const { tasks, addTask, updateTask, deleteTask, toggleTaskCompletion } = useTaskData();
   const { user } = useAuthStore();
+  const { isActive: isTourActive, currentStep } = useDemoTourStore();
+  const firstIncompleteRef = useRef<HTMLDivElement>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCompleted, setShowCompleted] = useState(true);
@@ -18,6 +22,17 @@ const TaskList: React.FC = () => {
   const [editingTask, setEditingTask] = useState<string | null>(null);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  const isTourOnTasks = isTourActive && TOUR_STEPS[currentStep]?.route === '/tasks';
+
+  useEffect(() => {
+    if (isTourOnTasks && firstIncompleteRef.current) {
+      const timeout = setTimeout(() => {
+        firstIncompleteRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+      return () => clearTimeout(timeout);
+    }
+  }, [isTourOnTasks]);
 
   // Default to current date if user.startDate is not available
   const userOnboardingStartDate = user?.startDate || new Date().toISOString().split('T')[0];
@@ -150,33 +165,46 @@ const TaskList: React.FC = () => {
       </EditScreen>
 
       <div className="space-y-3">
-        {filteredTasks.map((task) => (
+        {filteredTasks.map((task, index) => {
+          const isFirstIncomplete = isTourOnTasks && !task.completed && index === filteredTasks.findIndex(t => !t.completed);
+          return (
           <motion.div 
             key={task.id}
+            ref={isFirstIncomplete ? firstIncompleteRef : undefined}
             className={`card border-l-4 ${
               task.completed 
                 ? 'border-l-green-500 bg-green-50' 
                 : 'border-l-neutral-400'
-            }`}
+            } ${isFirstIncomplete ? 'tour-glow' : ''}`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
             <div className="flex items-start gap-3">
-              <button 
-                onClick={() => {
-                  if (!task.completed) {
-                    setShowCelebration(true);
-                  }
-                  toggleTaskCompletion(task.id);
-                }}
-                className="mt-1 flex-shrink-0"
-              >
-                {task.completed ? (
-                  <CheckCircle size={20} className="text-green-500" />
-                ) : (
-                  <Circle size={20} className="text-neutral-400 hover:text-neutral-600" />
+              <div className="relative mt-1 flex-shrink-0">
+                {isFirstIncomplete && (
+                  <motion.div
+                    className="absolute -left-7 top-1/2 -translate-y-1/2"
+                    animate={{ x: [0, 6, 0] }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
+                  >
+                    <ChevronRight size={18} className="text-primary-500" />
+                  </motion.div>
                 )}
-              </button>
+                <button 
+                  onClick={() => {
+                    if (!task.completed) {
+                      setShowCelebration(true);
+                    }
+                    toggleTaskCompletion(task.id);
+                  }}
+                >
+                  {task.completed ? (
+                    <CheckCircle size={20} className="text-green-500" />
+                  ) : (
+                    <Circle size={20} className={`text-neutral-400 hover:text-neutral-600 ${isFirstIncomplete ? 'tour-glow' : ''}`} />
+                  )}
+                </button>
+              </div>
               
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -233,7 +261,8 @@ const TaskList: React.FC = () => {
               </div>
             </div>
           </motion.div>
-        ))}
+          );
+        })}
         
         {filteredTasks.length === 0 && (
           <div className="text-center py-10">
