@@ -1,62 +1,57 @@
 
 
-# Highlight Active Nav Tab During Demo Tour
+# Auto-Scroll to First Uncompleted Task and Add Click Callout During Tour
 
-## What We're Fixing
+## Problem
 
-During the guided demo tour, when the tour navigates between pages (Dashboard, Tasks, Missions, etc.), the corresponding sidebar tab (desktop) and bottom nav tab (mobile) should visually "call out" to the user so it's crystal clear which section they're in. Right now the active tab just gets a subtle green background -- easy to miss, especially for first-time users.
+On the Tasks page during the interactive tour step, the first 3 tasks are already completed, so the first uncompleted task (task #4, "Complete W-4 tax forms") is below the fold. Users have to scroll to find something to check off, which breaks the guided flow. There's also no visual indicator showing *where* to click.
 
-## The Approach: Animated Glow + Pulse on Tour-Active Nav Items
+## Solution
 
-When the demo tour is active, the nav item matching the current tour step's route gets a glowing, pulsing highlight effect. This works on both the sidebar (desktop) and bottom nav (mobile).
+Two changes to make the interactive step seamless:
 
-### Visual Effect
+### 1. Auto-scroll to the first uncompleted task
 
-- A soft green glow/shadow radiates outward from the active nav item (`box-shadow` with `primary-400` color)
-- A gentle pulse animation makes the glow breathe in and out (2s cycle)
-- The effect only appears when the demo tour is running -- normal navigation keeps its current clean styling
+When the tour is active and on the interactive Tasks step, automatically scroll the first uncompleted task into view using `scrollIntoView()`. This ensures the user immediately sees an actionable item without hunting.
 
-### Desktop Sidebar
+### 2. Add a pulsing callout on the checkbox
 
-The active `NavLink` in the sidebar gets an additional CSS class during the tour that adds:
-- A green glow shadow (`shadow-[0_0_12px_rgba(57,224,121,0.5)]`)
-- A subtle scale-up pulse via a CSS keyframe animation
-- A brighter background (`bg-primary-200` instead of `bg-primary-100`)
-
-### Mobile Bottom Nav
-
-The active icon in the bottom nav gets:
-- The same glow effect around the icon
-- A small animated ring/circle behind the icon that pulses
+The first uncompleted task's circle/checkbox gets a glowing pulse animation (reusing the existing `tour-glow` style) plus a small animated arrow or "Tap here" label pointing at it. This makes it unmistakable where to click.
 
 ## Files to Change
 
 | File | Change |
 |------|--------|
-| `src/layouts/AppLayout.tsx` | Import `useDemoTourStore` and pass `isTourActive` context to sidebar nav item classNames. When tour is active and the item matches the current step route, add the glow class. |
-| `src/components/BottomNav.tsx` | Import `useDemoTourStore` and `TOUR_STEPS`. Add the same glow/pulse class to the matching bottom nav item during the tour. |
-| `src/index.css` | Add a `.tour-glow` utility class with keyframe animation for the pulsing green glow effect. |
+| `src/pages/TaskList.tsx` | Import `useDemoTourStore` and `TOUR_STEPS`. When the tour is active on the Tasks step: (1) use a `ref` + `useEffect` to scroll the first uncompleted task into view, and (2) add the `tour-glow` class plus an animated pointing indicator to that task's checkbox. |
+| `src/components/DemoTour.tsx` | No changes needed -- the interactive step already removes the overlay. |
 
 No new files or dependencies needed.
 
 ## Technical Details
 
-### New CSS in `src/index.css`
+### TaskList.tsx Changes
 
-A `@keyframes tour-glow-pulse` animation that oscillates a green box-shadow between subtle and bright, plus a `.tour-glow` class that applies it. This keeps the animation declarative and reusable across both nav components.
+- Import `useDemoTourStore` and check `isActive` + `currentStep`
+- Determine if the current tour step is the Tasks interactive step (step index 1, route `/tasks`)
+- Find the first uncompleted task in `filteredTasks`
+- Attach a `ref` to that task's card element
+- In a `useEffect`, when the tour is on this step, call `ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })` to bring it into view
+- Apply `tour-glow` class and a small animated "tap here" indicator (a bouncing arrow icon from lucide) to the checkbox of that specific task
+- The callout disappears once the task is checked off (the celebration fires instead)
 
-### Sidebar NavLink Logic (AppLayout.tsx)
+### Scroll + Highlight Logic
 
 ```text
-Current: isActive ? 'bg-primary-100 text-primary-700' : '...'
-New:     isActive && isTourActive ? 'bg-primary-200 text-primary-700 tour-glow' 
-         : isActive ? 'bg-primary-100 text-primary-700' : '...'
+const isTourOnTasks = isTourActive && TOUR_STEPS[currentStep]?.route === '/tasks';
+const firstIncompleteIndex = filteredTasks.findIndex(t => !t.completed);
+
+// For the task at firstIncompleteIndex when isTourOnTasks:
+//   1. Attach a ref and scrollIntoView on mount
+//   2. Add tour-glow class to the card
+//   3. Show a small animated arrow pointing at the circle icon
 ```
 
-### BottomNav Logic
+### Visual Callout
 
-Same pattern: when `isTourActive` and `isActive`, add the `tour-glow` class to the nav link, making the icon glow and pulse.
+The callout will be a small `ChevronLeft` or arrow icon positioned to the left of the checkbox, animated with a horizontal bounce (translateX oscillation) using Framer Motion. Combined with the existing `tour-glow` on the card border, this creates a clear "click here" signal without adding clutter.
 
-### Animation Style
-
-The glow is elegant and not distracting -- a soft breathing effect rather than a flashy strobe. It uses the existing primary green color so it feels cohesive with the brand.
