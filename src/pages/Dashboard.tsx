@@ -3,18 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { 
   CheckSquare, 
   Users, 
-  FileText, 
+  BookOpen, 
   Calendar, 
   ChevronRight,
   Bell,
-  Trophy
+  Trophy,
+  Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useAuthStore from '../stores/authStore';
 import useMissionStore from '../stores/missionStore';
-import { useTaskData } from '../hooks/useAppData';
+import { useTaskData, useGalleryData } from '../hooks/useAppData';
 import useNotificationStore from '../stores/notificationStore';
 import NotificationCenter from '../components/NotificationCenter';
+import usePeopleStore from '../stores/peopleStore';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -46,15 +48,18 @@ const Dashboard: React.FC = () => {
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
     .slice(0, 3);
 
-  const upcomingMeetings = [
-    { id: 1, name: 'Sarah Johnson', role: 'Team Lead', date: '2025-04-14', time: '10:00 AM' },
-    { id: 2, name: 'Michael Chen', role: 'Product Manager', date: '2025-04-16', time: '2:00 PM' },
-  ];
+  // Real data from stores
+  const { people } = usePeopleStore();
+  const { items: journalItems } = useGalleryData();
 
-  const recentNotes = [
-    { id: 1, title: 'Product roadmap', date: '2025-04-11' },
-    { id: 2, title: 'Team structure', date: '2025-04-10' },
-  ];
+  const upcomingMeetings = people
+    .filter(p => p.meetingDate && new Date(p.meetingDate) >= new Date(new Date().toDateString()))
+    .sort((a, b) => new Date(a.meetingDate).getTime() - new Date(b.meetingDate).getTime())
+    .slice(0, 3);
+
+  const recentJournalEntries = [...journalItems]
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 3);
 
   const cardVariants = {
     initial: { opacity: 0, y: 20 },
@@ -249,21 +254,32 @@ const Dashboard: React.FC = () => {
           </div>
           
           <ul className="space-y-3">
-            {upcomingMeetings.map(meeting => (
+            {upcomingMeetings.length > 0 ? upcomingMeetings.map(person => (
               <motion.li 
-                key={meeting.id} 
+                key={person.id} 
                 className="p-3 rounded-lg border border-neutral-100 hover:bg-neutral-50 cursor-pointer"
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
               >
-                <div className="font-medium">{meeting.name}</div>
-                <div className="text-sm text-neutral-600">{meeting.role}</div>
+                <div className="font-medium">{person.name}</div>
+                <div className="text-sm text-neutral-600">{person.role}</div>
                 <div className="text-sm text-neutral-600 mt-1 flex items-center">
                   <Calendar size={14} className="mr-1" />
-                  {meeting.date} at {meeting.time}
+                  {person.meetingDate}{person.meetingTime && ` at ${person.meetingTime}`}
                 </div>
               </motion.li>
-            ))}
+            )) : (
+              <li className="text-center py-6">
+                <Users size={24} className="mx-auto mb-2 text-neutral-400" />
+                <p className="text-neutral-500 text-sm mb-2">No upcoming meetings</p>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); navigate('/people'); }}
+                  className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1 mx-auto"
+                >
+                  <Plus size={14} /> Add your first contact
+                </button>
+              </li>
+            )}
           </ul>
         </motion.section>
 
@@ -278,26 +294,37 @@ const Dashboard: React.FC = () => {
         >
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold flex items-center">
-              <FileText size={20} className="mr-2 text-primary-500" />
-              Recent Notes
+              <BookOpen size={20} className="mr-2 text-primary-500" />
+              Recent Journal Entries
             </h2>
             <ChevronRight size={20} className="text-neutral-400" />
           </div>
           
           <ul className="space-y-3">
-            {recentNotes.map(note => (
+            {recentJournalEntries.length > 0 ? recentJournalEntries.map(entry => (
               <motion.li 
-                key={note.id} 
+                key={entry.id} 
                 className="p-3 rounded-lg border border-neutral-100 hover:bg-neutral-50 cursor-pointer"
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
               >
-                <div className="font-medium">{note.title}</div>
+                <div className="font-medium">{entry.title}</div>
                 <div className="text-sm text-neutral-600 mt-1">
-                  Created on {note.date}
+                  {new Date(entry.date).toLocaleDateString()}
                 </div>
               </motion.li>
-            ))}
+            )) : (
+              <li className="text-center py-6">
+                <BookOpen size={24} className="mx-auto mb-2 text-neutral-400" />
+                <p className="text-neutral-500 text-sm mb-2">No journal entries yet</p>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); navigate('/gallery'); }}
+                  className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1 mx-auto"
+                >
+                  <Plus size={14} /> Start your first journal entry
+                </button>
+              </li>
+            )}
           </ul>
         </motion.section>
       </div>

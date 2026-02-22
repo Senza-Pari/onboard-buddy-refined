@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Camera, Edit3, X, Trash2 } from 'lucide-react';
+import { Plus, Search, Camera, Edit3, X, Trash2, Trophy } from 'lucide-react';
 import ImageUpload from '../components/ImageUpload';
 import { type GalleryItem } from '../stores/galleryStore';
 import { useGalleryData } from '../hooks/useAppData';
 import { useLocation } from 'react-router-dom';
 import useNotificationStore from '../stores/notificationStore';
 import DeleteConfirmationDialog from '../components/DeleteConfirmationDialog';
+import useMissionStore from '../stores/missionStore';
 
 const Gallery: React.FC = () => {
   const location = useLocation();
   const { items, addItem, updateItem, deleteItem, tags: availableTags } = useGalleryData();
   const { addNotification } = useNotificationStore();
+  const { missions } = useMissionStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [isAddingItem, setIsAddingItem] = useState(false);
@@ -55,8 +57,8 @@ const Gallery: React.FC = () => {
 
     addItem(item);
     addNotification({
-      title: 'Item Added',
-      message: 'Your gallery item has been successfully added.',
+      title: 'Journal Entry Added',
+      message: 'Your journal entry has been saved.',
       type: 'success'
     });
     setIsAddingItem(false);
@@ -74,8 +76,8 @@ const Gallery: React.FC = () => {
     
     updateItem(editingItem.id, editingItem);
     addNotification({
-      title: 'Item Updated',
-      message: 'Your gallery item has been successfully updated.',
+      title: 'Entry Updated',
+      message: 'Your journal entry has been updated.',
       type: 'success'
     });
     setEditingItem(null);
@@ -330,6 +332,24 @@ const Gallery: React.FC = () => {
           </div>
         </div>
 
+        {/* Mission connection banner */}
+        {(() => {
+          const currentTags = item.tags || [];
+          if (currentTags.length === 0) return null;
+          const matchingMissions = missions.filter(m => 
+            !m.completed && m.requirements.some(req => currentTags.includes(req.tag))
+          );
+          if (matchingMissions.length === 0) return null;
+          return (
+            <div className="flex items-center gap-2 p-3 bg-indigo-50 border border-indigo-200 rounded-lg text-sm">
+              <Trophy size={16} className="text-indigo-500 flex-shrink-0" />
+              <span className="text-indigo-700">
+                This entry will count toward: {matchingMissions.map(m => m.title).join(', ')}
+              </span>
+            </div>
+          );
+        })()}
+
         <div className="flex justify-end gap-2">
           <button
             onClick={() => {
@@ -345,7 +365,7 @@ const Gallery: React.FC = () => {
             disabled={!item.title || (!item.content && !item.imageUrl)}
             className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50"
           >
-            {isEditing ? 'Save Changes' : 'Add Item'}
+            {isEditing ? 'Save Changes' : 'Add Entry'}
           </button>
         </div>
       </div>
@@ -355,9 +375,9 @@ const Gallery: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto">
       <header className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Gallery & Notes</h1>
+        <h1 className="text-3xl font-bold mb-2">Journal</h1>
         <p className="text-neutral-700">
-          Document your onboarding journey with photos and notes. Images are automatically stored securely.
+          Capture notes, photos, and key moments from your onboarding.
         </p>
       </header>
 
@@ -392,7 +412,7 @@ const Gallery: React.FC = () => {
           onClick={() => setIsAddingItem(true)}
         >
           <Plus size={20} className="mr-2" />
-          Add Item
+          Add Entry
         </button>
       </div>
 

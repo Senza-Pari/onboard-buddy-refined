@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Trophy, Users, Image } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Trophy, Users, BookOpen } from 'lucide-react';
 import useDemoTourStore from '../stores/demoTourStore';
 
 const navItems = [
@@ -8,7 +8,7 @@ const navItems = [
   { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
   { path: '/missions', icon: Trophy, label: 'Missions' },
   { path: '/people', icon: Users, label: 'People' },
-  { path: '/gallery', icon: Image, label: 'Gallery' },
+  { path: '/gallery', icon: BookOpen, label: 'Journal' },
 ];
 
 const BottomNav: React.FC = () => {
