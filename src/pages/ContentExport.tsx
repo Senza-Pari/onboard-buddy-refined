@@ -4,7 +4,7 @@ import { FileText, Download, Check, Mail, Copy, CheckSquare } from 'lucide-react
 import useTaskStore from '../stores/taskStore';
 import useGalleryStore from '../stores/galleryStore';
 import useMissionStore from '../stores/missionStore';
-import { jsPDF } from 'jspdf';
+import { generateStyledPDF } from '../lib/pdfGenerator';
 
 interface ContentExportProps {}
 
@@ -95,43 +95,7 @@ const ContentExport: React.FC<ContentExportProps> = () => {
     try {
       switch (exportFormat) {
         case 'pdf': {
-          const doc = new jsPDF({
-            orientation: 'portrait',
-            unit: 'pt',
-            format: 'a4',
-          });
-
-          // Set font and size
-          doc.setFont('helvetica');
-          doc.setFontSize(12);
-
-          // Calculate line height in points
-          const lineHeight = doc.getLineHeight();
-          
-          // Set margins
-          const margin = 50;
-          const pageWidth = doc.internal.pageSize.width - 2 * margin;
-          
-          // Split content into lines that fit the page width
-          const lines = doc.splitTextToSize(content, pageWidth);
-          
-          let cursorY = margin;
-          const pageHeight = doc.internal.pageSize.height;
-
-          // Add lines to document with pagination
-          lines.forEach((line: string) => {
-            // Check if we need a new page
-            if (cursorY > pageHeight - margin) {
-              doc.addPage();
-              cursorY = margin;
-            }
-
-            // Add the line
-            doc.text(line, margin, cursorY);
-            cursorY += lineHeight;
-          });
-
-          doc.save('onboarding-journey.pdf');
+          generateStyledPDF(tasks, missions, galleryItems, includeContent);
           break;
         }
 
