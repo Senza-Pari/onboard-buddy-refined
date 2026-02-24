@@ -4,12 +4,12 @@ import { X, Send, Loader2, Bot, Volume2, Square } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useBuddyContext } from '../hooks/useBuddyContext';
 import useAuthStore from '../stores/authStore';
-import { supabase } from '@/integrations/supabase/client';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
-const SUPABASE_URL = (supabase as any).supabaseUrl || import.meta.env.VITE_SUPABASE_URL || `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co`;
-const SUPABASE_KEY = (supabase as any).supabaseKey || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const PROJECT_ID = 'tsfnrqcrttxaorcxkhoy';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || `https://${PROJECT_ID}.supabase.co`;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
 const CHAT_URL = `${SUPABASE_URL}/functions/v1/onboarding-buddy`;
 const TTS_URL = `${SUPABASE_URL}/functions/v1/elevenlabs-tts`;
 

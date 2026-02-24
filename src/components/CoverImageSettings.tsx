@@ -43,7 +43,7 @@ const CoverImageSettings: React.FC<CoverImageSettingsProps> = ({ className = '' 
   };
 
   const handleResetToDefault = () => {
-    setWelcomeBackground('https://cameronstewart.click/onboardingbuddy/onboarding-buddy-cover-image.jpg');
+    setWelcomeBackground('/images/hero-welcome.png');
     setSuccess('Cover image reset to default');
     setTimeout(() => setSuccess(''), 3000);
   };
@@ -52,7 +52,7 @@ const CoverImageSettings: React.FC<CoverImageSettingsProps> = ({ className = '' 
     <div className={`space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-neutral-900">Cover Image</h3>
-        {welcomeBackground && welcomeBackground !== 'https://cameronstewart.click/onboardingbuddy/onboarding-buddy-cover-image.jpg' && (
+        {welcomeBackground && welcomeBackground !== '/images/hero-welcome.png' && (
           <button
             onClick={handleRemoveImage}
             className="text-sm text-red-600 hover:text-red-700"

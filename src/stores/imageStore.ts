@@ -22,8 +22,7 @@ interface ImageState {
   cleanupOrphanedImages: () => Promise<void>;
 }
 
-const DEFAULT_WELCOME_BACKGROUND =
-  'https://cameronstewart.click/onboardingbuddy/onboarding-buddy-cover-image.jpg';
+const DEFAULT_WELCOME_BACKGROUND = '/images/hero-welcome.png';
 
 const useImageStore = create<ImageState>()(
   persist(
