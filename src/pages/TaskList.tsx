@@ -46,20 +46,32 @@ const TaskList: React.FC = () => {
   // Get unique tags from all tasks with defensive check
   const availableTags = Array.from(new Set(tasks.flatMap(task => task.tags || [])));
 
-  const filteredTasks = tasks.filter(task => {
-    if (!showCompleted && task.completed) return false;
-    if (selectedTag && (!task.tags || !task.tags.includes(selectedTag))) return false;
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      return (
-        task.title.toLowerCase().includes(term) ||
-        task.description.toLowerCase().includes(term) ||
-        (task.tags && task.tags.some(tag => tag.toLowerCase().includes(term))) ||
-        (task.notes && task.notes.toLowerCase().includes(term))
-      );
-    }
-    return true;
-  });
+  const filteredTasks = tasks
+    .filter(task => {
+      if (!showCompleted && task.completed) return false;
+      if (selectedTag && (!task.tags || !task.tags.includes(selectedTag))) return false;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        return (
+          task.title.toLowerCase().includes(term) ||
+          task.description.toLowerCase().includes(term) ||
+          (task.tags && task.tags.some(tag => tag.toLowerCase().includes(term))) ||
+          (task.notes && task.notes.toLowerCase().includes(term))
+        );
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      // Incomplete tasks float to the top, completed sink to the bottom
+      if (a.completed !== b.completed) return a.completed ? 1 : -1;
+      // Among incomplete: soonest due date first
+      if (!a.completed && !b.completed) {
+        const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+        const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+        return aDate - bDate;
+      }
+      return 0;
+    });
 
   const handleSubmit = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
     if (editingTask) {
