@@ -19,6 +19,7 @@ import NotificationCenter from '../components/NotificationCenter';
 import usePeopleStore from '../stores/peopleStore';
 import WhatToDoNow from '../components/WhatToDoNow';
 import MilestoneCelebration from '../components/MilestoneCelebration';
+import ShareJourneyButton from '../components/ShareJourneyButton';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
