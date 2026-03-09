@@ -19,7 +19,9 @@ const BottomNav: React.FC = () => {
   const [isBuddyOpen, setIsBuddyOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const { isEnabled } = useFeatureStore();
-  const navigate = useNavigate();
+  const navItems = allNavItems.filter(item => !item.featureKey || isEnabled(item.featureKey));
+  const showBuddy = isEnabled('buddyChat');
+
 
   const moreItems: { icon: typeof FileText; label: string; path?: string; action?: () => void; featureKey?: FeatureKey }[] = [
     ...(isEnabled('export') ? [{ icon: FileText, label: 'Export', path: '/export' }] : []),
