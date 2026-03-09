@@ -6,7 +6,7 @@ import useDemoTourStore from '../stores/demoTourStore';
 import BuddyChatDrawer from './BuddyChatDrawer';
 import useFeatureStore, { FeatureKey } from '../stores/featureStore';
 
-const allNavItems: { path: string; icon: typeof LayoutDashboard; label: string; featureKey?: FeatureKey }[] = [
+const primaryNavItems: { path: string; icon: typeof LayoutDashboard; label: string; featureKey?: FeatureKey }[] = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'Home' },
   { path: '/tasks', icon: CheckSquare, label: 'Tasks', featureKey: 'tasks' },
   { path: '/missions', icon: Trophy, label: 'Missions', featureKey: 'missions' },
@@ -19,16 +19,18 @@ const BottomNav: React.FC = () => {
   const [isBuddyOpen, setIsBuddyOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const { isEnabled } = useFeatureStore();
-  const showBuddy = isEnabled('buddyChat');
   const navigate = useNavigate();
 
-  const moreItems: { icon: typeof FileText; label: string; path?: string; action?: () => void; featureKey?: FeatureKey }[] = [
+  const navItems = primaryNavItems.filter(item => !item.featureKey || isEnabled(item.featureKey));
+  const showBuddy = isEnabled('buddyChat');
+
+  const moreItems: { icon: typeof FileText; label: string; path?: string; action?: () => void }[] = [
     ...(isEnabled('export') ? [{ icon: FileText, label: 'Export', path: '/export' }] : []),
     ...(isEnabled('templates') ? [{ icon: Layout, label: 'Templates', path: '/templates' }] : []),
     { icon: Shield, label: 'Admin', path: '/admin' },
-    { icon: Settings, label: 'Settings', action: () => {} },
-    { icon: HelpCircle, label: 'Help Center', action: () => {} },
-    { icon: LogOut, label: 'Sign Out', action: () => navigate('/') },
+    { icon: Settings, label: 'Settings', path: undefined, action: () => {} },
+    { icon: HelpCircle, label: 'Help Center', path: undefined, action: () => {} },
+    { icon: LogOut, label: 'Sign Out', path: undefined, action: () => navigate('/') },
   ];
 
   return (
