@@ -22,11 +22,19 @@ import MilestoneCelebration from '../components/MilestoneCelebration';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { tasks } = useTaskData();
+  const { tasks, toggleTaskCompletion } = useTaskData();
   const { user } = useAuthStore();
   const { missions } = useMissionStore();
   const { unreadCount } = useNotificationStore();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
+  const handleTaskComplete = useCallback((task: { id: number }) => {
+    toggleTaskCompletion(task.id);
+  }, [toggleTaskCompletion]);
+
+  const handleMilestoneDismiss = useCallback(() => {
+    // Milestone dismissed - no action needed
+  }, []);
   
   // Calculate task completion percentage with proper fallback
   const completedTasks = tasks.filter(task => task.completed).length;
