@@ -66,6 +66,10 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 8px);
+  }
+
   .touch-target {
     @apply min-w-[44px] min-h-[44px] flex items-center justify-center;
   }
