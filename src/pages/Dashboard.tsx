@@ -293,7 +293,7 @@ const Dashboard: React.FC = () => {
         )}
 
         {isEnabled('people') && (
-          className="card"
+          <motion.section
           variants={cardVariants}
           initial="initial"
           animate="animate"
