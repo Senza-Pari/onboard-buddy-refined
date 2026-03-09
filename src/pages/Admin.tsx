@@ -125,7 +125,7 @@ interface FeatureRowProps {
   onToggle: () => void;
 }
 
-const FeatureRow: React.FC<FeatureRowProps> = ({ featureKey, config, onToggle }) => (
+const FeatureRow: React.FC<FeatureRowProps> = ({ config, onToggle }) => (
   <motion.div
     className={`flex items-center justify-between p-4 rounded-xl border transition-colors ${
       config.enabled

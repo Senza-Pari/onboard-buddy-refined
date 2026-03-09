@@ -71,6 +71,10 @@ function App() {
           path="/templates/:type" 
           element={isAuthenticated ? <TemplateBuilder /> : <Navigate to="/login" />} 
         />
+        <Route 
+          path="/admin" 
+          element={isAuthenticated ? <Admin /> : <Navigate to="/login" />} 
+        />
       </Route>
       
       {/* Catch all */}

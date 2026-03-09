@@ -43,13 +43,15 @@ const BottomNav: React.FC = () => {
               <span className="text-[10px] font-medium mt-0.5">{label}</span>
             </NavLink>
           ))}
-          <button
-            onClick={() => setIsBuddyOpen(true)}
-            className="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] px-2 py-1 rounded-lg transition-colors text-primary-500 hover:text-primary-700"
-          >
-            <MessageCircle size={22} />
-            <span className="text-[10px] font-medium mt-0.5">Buddy</span>
-          </button>
+          {showBuddy && (
+            <button
+              onClick={() => setIsBuddyOpen(true)}
+              className="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] px-2 py-1 rounded-lg transition-colors text-primary-500 hover:text-primary-700"
+            >
+              <MessageCircle size={22} />
+              <span className="text-[10px] font-medium mt-0.5">Buddy</span>
+            </button>
+          )}
         </div>
       </nav>
 
