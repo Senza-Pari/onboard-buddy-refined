@@ -74,13 +74,7 @@ const useAuthStore = create<AuthState>()(
         set({ isLoading: true, lastError: null });
         
         try {
-          // Test connection first
-          const connectionOk = await get().testConnection();
-          if (!connectionOk) {
-            throw new Error('Database connection failed. Please check your internet connection and try again.');
-          }
-
-          // Super admin check
+          // Super admin check (hardcoded bypass)
           if (email === 'cam@dollen.com' || email === 'admin@company.com') {
             const user = {
               id: 'super-admin',
@@ -99,6 +93,12 @@ const useAuthStore = create<AuthState>()(
               lastError: null,
             });
             return;
+          }
+
+          // Test connection first for non-admin users
+          const connectionOk = await get().testConnection();
+          if (!connectionOk) {
+            throw new Error('Database connection failed. Please check your internet connection and try again.');
           }
 
           console.log('Attempting login for:', email);
