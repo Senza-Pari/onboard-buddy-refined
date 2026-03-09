@@ -60,14 +60,16 @@ const AppLayout: React.FC = () => {
     return uuidRegex.test(id);
   };
 
-  const navItems = [
+  const allNavItems: { path: string; icon: React.ReactNode; label: string; featureKey?: FeatureKey }[] = [
     { path: '/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-    { path: '/tasks', icon: <CheckSquare size={20} />, label: 'Tasks' },
-    { path: '/missions', icon: <Trophy size={20} />, label: 'Missions' },
-    { path: '/people', icon: <Users size={20} />, label: 'People' },
-    { path: '/gallery', icon: <BookOpen size={20} />, label: 'Journal' },
-    { path: '/export', icon: <FileText size={20} />, label: 'Export' },
+    { path: '/tasks', icon: <CheckSquare size={20} />, label: 'Tasks', featureKey: 'tasks' },
+    { path: '/missions', icon: <Trophy size={20} />, label: 'Missions', featureKey: 'missions' },
+    { path: '/people', icon: <Users size={20} />, label: 'People', featureKey: 'people' },
+    { path: '/gallery', icon: <BookOpen size={20} />, label: 'Journal', featureKey: 'journal' },
+    { path: '/export', icon: <FileText size={20} />, label: 'Export', featureKey: 'export' },
   ];
+
+  const navItems = allNavItems.filter(item => !item.featureKey || isEnabled(item.featureKey));
 
   const templatesNavItem = {
     path: '/templates',
