@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle, Circle, Trophy, Users, BookOpen, Calendar, Loader2, AlertCircle } from 'lucide-react';
+import { CheckCircle, Circle, Trophy, Loader2, AlertCircle } from 'lucide-react';
 
 interface SharedData {
   userName: string;
