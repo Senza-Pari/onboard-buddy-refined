@@ -20,6 +20,7 @@ import usePeopleStore from '../stores/peopleStore';
 import WhatToDoNow from '../components/WhatToDoNow';
 import MilestoneCelebration from '../components/MilestoneCelebration';
 import ShareJourneyButton from '../components/ShareJourneyButton';
+import useFeatureStore from '../stores/featureStore';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
