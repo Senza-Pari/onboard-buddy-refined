@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   CheckSquare, 
@@ -17,14 +17,25 @@ import { useTaskData, useGalleryData } from '../hooks/useAppData';
 import useNotificationStore from '../stores/notificationStore';
 import NotificationCenter from '../components/NotificationCenter';
 import usePeopleStore from '../stores/peopleStore';
+import WhatToDoNow from '../components/WhatToDoNow';
+import MilestoneCelebration from '../components/MilestoneCelebration';
+import ShareJourneyButton from '../components/ShareJourneyButton';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { tasks } = useTaskData();
+  const { tasks, toggleTaskCompletion } = useTaskData();
   const { user } = useAuthStore();
   const { missions } = useMissionStore();
   const { unreadCount } = useNotificationStore();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
+  const handleTaskComplete = useCallback((task: { id: number }) => {
+    toggleTaskCompletion(task.id);
+  }, [toggleTaskCompletion]);
+
+  const handleMilestoneDismiss = useCallback(() => {
+    // Milestone dismissed - no action needed
+  }, []);
   
   // Calculate task completion percentage with proper fallback
   const completedTasks = tasks.filter(task => task.completed).length;
@@ -73,32 +84,65 @@ const Dashboard: React.FC = () => {
       <header className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <div className="relative">
-            <motion.button 
-              className="p-3 rounded-full bg-neutral-100 hover:bg-neutral-200 min-w-[44px] min-h-[44px] flex items-center justify-center"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsNotificationOpen(true)}
-            >
-              <Bell size={20} />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </motion.button>
-            <AnimatePresence>
-              {isNotificationOpen && (
-                <NotificationCenter 
-                  isOpen={isNotificationOpen} 
-                  onClose={() => setIsNotificationOpen(false)} 
-                />
-              )}
-            </AnimatePresence>
+          <div className="flex items-center gap-3">
+            <ShareJourneyButton
+              userName={user?.name || 'New Hire'}
+              company={user?.company || 'Company'}
+              startDate={user?.startDate || new Date().toISOString().split('T')[0]}
+              taskProgress={taskProgress}
+              tasksCompleted={completedTasks}
+              totalTasks={totalTasks}
+              missionsCompleted={missions.filter(m => m.completed).length}
+              totalMissions={missions.length}
+              peopleMetCount={people.length}
+              journalEntries={journalItems.length}
+              recentTasks={upcomingTasks.slice(0, 5).map(t => ({
+                title: t.title,
+                completed: t.completed,
+                dueDate: t.dueDate
+              }))}
+              recentMissions={missions.filter(m => !m.completed).slice(0, 3).map(m => ({
+                title: m.title,
+                progress: m.progress
+              }))}
+            />
+            <div className="relative">
+              <motion.button 
+                className="p-3 rounded-full bg-neutral-100 hover:bg-neutral-200 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsNotificationOpen(true)}
+              >
+                <Bell size={20} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </motion.button>
+              <AnimatePresence>
+                {isNotificationOpen && (
+                  <NotificationCenter 
+                    isOpen={isNotificationOpen} 
+                    onClose={() => setIsNotificationOpen(false)} 
+                  />
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
         <p className="text-neutral-700">Welcome back! Here's your onboarding progress.</p>
       </header>
+
+      {/* What To Do Now Card */}
+      <WhatToDoNow tasks={tasks} onComplete={handleTaskComplete} />
+
+      {/* Milestone Celebration */}
+      <MilestoneCelebration 
+        progress={taskProgress} 
+        userName={user?.name?.split(' ')[0] || 'there'}
+        onDismiss={handleMilestoneDismiss}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <motion.div 

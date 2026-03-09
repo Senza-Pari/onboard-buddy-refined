@@ -16,6 +16,7 @@ import AppLayout from './layouts/AppLayout';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import ActivateAccount from './pages/ActivateAccount';
+import SharedJourney from './pages/SharedJourney';
 import useAuthStore from './stores/authStore';
 
 function App() {
@@ -31,6 +32,9 @@ function App() {
         <Route path="/activate" element={<ActivateAccount />} />
         <Route path="/pricing" element={<Pricing />} />
       </Route>
+
+      {/* Shared journey (public, no auth needed) */}
+      <Route path="/share/:code" element={<SharedJourney />} />
       
       {/* Protected routes */}
       <Route element={<AppLayout />}>

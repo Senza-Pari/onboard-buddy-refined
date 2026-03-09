@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, CheckCircle, Circle, Search, Edit2, Trash2, ChevronRight, X, BookOpen } from 'lucide-react';
+import { Plus, CheckCircle, Circle, Search, Edit2, Trash2, ChevronRight, X, BookOpen, Sparkles, Loader2 } from 'lucide-react';
 import { type Task } from '../stores/taskStore';
 import useAuthStore from '../stores/authStore';
 import useDemoTourStore from '../stores/demoTourStore';
@@ -9,6 +9,7 @@ import { useTaskData, useGalleryData } from '../hooks/useAppData';
 import TaskForm from '../components/TaskForm';
 import EditScreen from '../components/EditScreen';
 import TaskCelebration from '../components/TaskCelebration';
+import OverdueTaskBadge from '../components/OverdueTaskBadge';
 import { addBusinessDays } from 'date-fns';
 
 const TaskList: React.FC = () => {
@@ -27,6 +28,7 @@ const TaskList: React.FC = () => {
   const [quickAddTitle, setQuickAddTitle] = useState('');
   const [promptTaskId, setPromptTaskId] = useState<number | null>(null);
   const [promptNote, setPromptNote] = useState('');
+  const [isSuggestingTasks, setIsSuggestingTasks] = useState(false);
   const promptRef = useRef<HTMLInputElement>(null);
 
   const isTourOnTasks = isTourActive && TOUR_STEPS[currentStep]?.route === '/tasks';
@@ -62,13 +64,23 @@ const TaskList: React.FC = () => {
       return true;
     })
     .sort((a, b) => {
-      // Incomplete tasks float to the top, completed sink to the bottom
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const aDate = a.dueDate ? new Date(a.dueDate) : null;
+      const bDate = b.dueDate ? new Date(b.dueDate) : null;
+      const aOverdue = aDate && aDate < today && !a.completed;
+      const bOverdue = bDate && bDate < today && !b.completed;
+
+      // Overdue incomplete tasks float to the very top
+      if (aOverdue && !bOverdue) return -1;
+      if (!aOverdue && bOverdue) return 1;
+
+      // Incomplete tasks above completed
       if (a.completed !== b.completed) return a.completed ? 1 : -1;
+
       // Among incomplete: soonest due date first
-      if (!a.completed && !b.completed) {
-        const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-        const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
-        return aDate - bDate;
+      if (!a.completed && !b.completed && aDate && bDate) {
+        return aDate.getTime() - bDate.getTime();
       }
       return 0;
     });
@@ -138,6 +150,55 @@ const TaskList: React.FC = () => {
       promptRef.current.focus();
     }
   }, [promptTaskId]);
+
+  const handleSuggestTasks = async () => {
+    setIsSuggestingTasks(true);
+    try {
+      const SUGGEST_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/suggest-tasks`;
+      const response = await fetch(SUGGEST_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          role: user?.name?.includes('Engineer') ? 'Software Engineer' : 'New Employee',
+          company: user?.company || 'the company',
+          existingTaskTitles: tasks.map(t => t.title),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to generate suggestions');
+      }
+
+      const { tasks: suggestedTasks } = await response.json();
+      
+      // Add suggested tasks to the store
+      suggestedTasks.forEach((taskData: any) => {
+        const dueDate = addBusinessDays(new Date(userOnboardingStartDate), taskData.daysFromStart)
+          .toISOString().split('T')[0];
+        
+        addTask({
+          title: taskData.title,
+          description: taskData.description,
+          tags: taskData.tags || [],
+          department: taskData.department || 'HR',
+          priority: taskData.priority || 'medium',
+          dueDate,
+          startDate: userOnboardingStartDate,
+          completed: false,
+        });
+      });
+
+    } catch (error) {
+      console.error('Error suggesting tasks:', error);
+      alert(error instanceof Error ? error.message : 'Failed to generate task suggestions');
+    } finally {
+      setIsSuggestingTasks(false);
+    }
+  };
 
   useEffect(() => {
     if (promptTaskId !== null) {
@@ -220,16 +281,29 @@ const TaskList: React.FC = () => {
       </div>
 
       <motion.div 
-        className="mb-6"
+        className="mb-6 flex flex-col sm:flex-row gap-3"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <button 
-          className="btn-primary flex items-center justify-center gap-2 max-w-xs"
+          className="btn-primary flex items-center justify-center gap-2 flex-1 sm:flex-initial"
           onClick={() => setIsAddingTask(true)}
         >
           <Plus size={20} />
           Add Detailed Task
+        </button>
+        
+        <button 
+          className="btn-secondary flex items-center justify-center gap-2 flex-1 sm:flex-initial"
+          onClick={handleSuggestTasks}
+          disabled={isSuggestingTasks}
+        >
+          {isSuggestingTasks ? (
+            <Loader2 size={20} className="animate-spin" />
+          ) : (
+            <Sparkles size={20} />
+          )}
+          {isSuggestingTasks ? 'Generating...' : 'Suggest Tasks for Me'}
         </button>
       </motion.div>
 
@@ -301,10 +375,13 @@ const TaskList: React.FC = () => {
               
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h3 className={`text-lg font-medium ${task.completed ? 'line-through text-neutral-500' : ''}`}>
-                    {task.title}
-                  </h3>
                   <div className="flex items-center gap-2">
+                    <h3 className={`text-lg font-medium ${task.completed ? 'line-through text-neutral-500' : ''}`}>
+                      {task.title}
+                    </h3>
+                    <OverdueTaskBadge dueDate={task.dueDate} />
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <div className="flex flex-wrap gap-1">
                       {(task.tags || []).map(tag => (
                         <span key={tag} className="px-2 py-1 bg-neutral-100 text-neutral-700 rounded-full text-sm">
