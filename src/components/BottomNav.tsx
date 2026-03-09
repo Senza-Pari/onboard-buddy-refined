@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useDemoTourStore from '../stores/demoTourStore';
 import BuddyChatDrawer from './BuddyChatDrawer';
 import useFeatureStore, { FeatureKey } from '../stores/featureStore';
-import useAuthStore from '../stores/authStore';
 
 const allNavItems: { path: string; icon: typeof LayoutDashboard; label: string; featureKey?: FeatureKey }[] = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'Home' },
