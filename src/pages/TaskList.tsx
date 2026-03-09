@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, CheckCircle, Circle, Search, Edit2, Trash2, ChevronRight, X, BookOpen } from 'lucide-react';
+import { Plus, CheckCircle, Circle, Search, Edit2, Trash2, ChevronRight, X, BookOpen, Sparkles, Loader2 } from 'lucide-react';
 import { type Task } from '../stores/taskStore';
 import useAuthStore from '../stores/authStore';
 import useDemoTourStore from '../stores/demoTourStore';
@@ -9,6 +9,7 @@ import { useTaskData, useGalleryData } from '../hooks/useAppData';
 import TaskForm from '../components/TaskForm';
 import EditScreen from '../components/EditScreen';
 import TaskCelebration from '../components/TaskCelebration';
+import OverdueTaskBadge from '../components/OverdueTaskBadge';
 import { addBusinessDays } from 'date-fns';
 
 const TaskList: React.FC = () => {
