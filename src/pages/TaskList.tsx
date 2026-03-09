@@ -151,6 +151,55 @@ const TaskList: React.FC = () => {
     }
   }, [promptTaskId]);
 
+  const handleSuggestTasks = async () => {
+    setIsSuggestingTasks(true);
+    try {
+      const SUGGEST_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/suggest-tasks`;
+      const response = await fetch(SUGGEST_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          role: user?.name?.includes('Engineer') ? 'Software Engineer' : 'New Employee',
+          company: user?.company || 'the company',
+          existingTaskTitles: tasks.map(t => t.title),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to generate suggestions');
+      }
+
+      const { tasks: suggestedTasks } = await response.json();
+      
+      // Add suggested tasks to the store
+      suggestedTasks.forEach((taskData: any) => {
+        const dueDate = addBusinessDays(new Date(userOnboardingStartDate), taskData.daysFromStart)
+          .toISOString().split('T')[0];
+        
+        addTask({
+          title: taskData.title,
+          description: taskData.description,
+          tags: taskData.tags || [],
+          department: taskData.department || 'HR',
+          priority: taskData.priority || 'medium',
+          dueDate,
+          startDate: userOnboardingStartDate,
+          completed: false,
+        });
+      });
+
+    } catch (error) {
+      console.error('Error suggesting tasks:', error);
+      alert(error instanceof Error ? error.message : 'Failed to generate task suggestions');
+    } finally {
+      setIsSuggestingTasks(false);
+    }
+  };
+
   useEffect(() => {
     if (promptTaskId !== null) {
       const timer = setTimeout(() => setPromptTaskId(null), 15000);
