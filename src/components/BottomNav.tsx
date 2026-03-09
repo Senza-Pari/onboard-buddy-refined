@@ -20,16 +20,7 @@ const BottomNav: React.FC = () => {
   const [isBuddyOpen, setIsBuddyOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const { isEnabled } = useFeatureStore();
-  const { user } = useAuthStore();
   const navigate = useNavigate();
-
-  const navItems = allNavItems.filter(item => !item.featureKey || isEnabled(item.featureKey));
-  const showBuddy = isEnabled('buddyChat');
-
-  const isValidUUID = (id: string) => {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(id);
-  };
 
   const moreItems: { icon: typeof FileText; label: string; path?: string; action?: () => void; featureKey?: FeatureKey }[] = [
     ...(isEnabled('export') ? [{ icon: FileText, label: 'Export', path: '/export' }] : []),
