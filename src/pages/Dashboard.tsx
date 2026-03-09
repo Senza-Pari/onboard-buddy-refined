@@ -20,6 +20,7 @@ import usePeopleStore from '../stores/peopleStore';
 import WhatToDoNow from '../components/WhatToDoNow';
 import MilestoneCelebration from '../components/MilestoneCelebration';
 import ShareJourneyButton from '../components/ShareJourneyButton';
+import useFeatureStore from '../stores/featureStore';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const Dashboard: React.FC = () => {
   const { missions } = useMissionStore();
   const { unreadCount } = useNotificationStore();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const { isEnabled } = useFeatureStore();
 
   const handleTaskComplete = useCallback((task: { id: number }) => {
     toggleTaskCompletion(task.id);
@@ -85,27 +87,29 @@ const Dashboard: React.FC = () => {
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <div className="flex items-center gap-3">
-            <ShareJourneyButton
-              userName={user?.name || 'New Hire'}
-              company={user?.company || 'Company'}
-              startDate={user?.startDate || new Date().toISOString().split('T')[0]}
-              taskProgress={taskProgress}
-              tasksCompleted={completedTasks}
-              totalTasks={totalTasks}
-              missionsCompleted={missions.filter(m => m.completed).length}
-              totalMissions={missions.length}
-              peopleMetCount={people.length}
-              journalEntries={journalItems.length}
-              recentTasks={upcomingTasks.slice(0, 5).map(t => ({
-                title: t.title,
-                completed: t.completed,
-                dueDate: t.dueDate
-              }))}
-              recentMissions={missions.filter(m => !m.completed).slice(0, 3).map(m => ({
-                title: m.title,
-                progress: m.progress
-              }))}
-            />
+            {isEnabled('shareJourney') && (
+              <ShareJourneyButton
+                userName={user?.name || 'New Hire'}
+                company={user?.company || 'Company'}
+                startDate={user?.startDate || new Date().toISOString().split('T')[0]}
+                taskProgress={taskProgress}
+                tasksCompleted={completedTasks}
+                totalTasks={totalTasks}
+                missionsCompleted={missions.filter(m => m.completed).length}
+                totalMissions={missions.length}
+                peopleMetCount={people.length}
+                journalEntries={journalItems.length}
+                recentTasks={upcomingTasks.slice(0, 5).map(t => ({
+                  title: t.title,
+                  completed: t.completed,
+                  dueDate: t.dueDate
+                }))}
+                recentMissions={missions.filter(m => !m.completed).slice(0, 3).map(m => ({
+                  title: m.title,
+                  progress: m.progress
+                }))}
+              />
+            )}
             <div className="relative">
               <motion.button 
                 className="p-3 rounded-full bg-neutral-100 hover:bg-neutral-200 min-w-[44px] min-h-[44px] flex items-center justify-center"
@@ -135,14 +139,18 @@ const Dashboard: React.FC = () => {
       </header>
 
       {/* What To Do Now Card */}
-      <WhatToDoNow tasks={tasks} onComplete={handleTaskComplete} />
+      {isEnabled('whatToDoNow') && (
+        <WhatToDoNow tasks={tasks} onComplete={handleTaskComplete} />
+      )}
 
       {/* Milestone Celebration */}
-      <MilestoneCelebration 
-        progress={taskProgress} 
-        userName={user?.name?.split(' ')[0] || 'there'}
-        onDismiss={handleMilestoneDismiss}
-      />
+      {isEnabled('milestoneCelebrations') && (
+        <MilestoneCelebration 
+          progress={taskProgress} 
+          userName={user?.name?.split(' ')[0] || 'there'}
+          onDismiss={handleMilestoneDismiss}
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <motion.div 
@@ -167,27 +175,29 @@ const Dashboard: React.FC = () => {
           </div>
         </motion.div>
 
-        <motion.div 
-          className="bg-gradient-to-r from-indigo-400 to-indigo-500 rounded-xl p-6 text-white shadow-medium cursor-pointer"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          transition={{ duration: 0.2 }}
-          onClick={() => navigate('/missions')}
-        >
-          <h2 className="text-xl font-bold mb-2">Mission Progress</h2>
-          <div className="w-full bg-white/30 rounded-full h-2.5 mb-4">
-            <div 
-              className="bg-white h-2.5 rounded-full" 
-              style={{ width: `${missionProgress}%` }}
-            ></div>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span>{missionProgress}% Complete</span>
-            <span>{missions.filter(m => m.completed).length} of {missions.length} Completed</span>
-          </div>
-        </motion.div>
+        {isEnabled('missions') && (
+          <motion.div 
+            className="bg-gradient-to-r from-indigo-400 to-indigo-500 rounded-xl p-6 text-white shadow-medium cursor-pointer"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => navigate('/missions')}
+          >
+            <h2 className="text-xl font-bold mb-2">Mission Progress</h2>
+            <div className="w-full bg-white/30 rounded-full h-2.5 mb-4">
+              <div 
+                className="bg-white h-2.5 rounded-full" 
+                style={{ width: `${missionProgress}%` }}
+              ></div>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>{missionProgress}% Complete</span>
+              <span>{missions.filter(m => m.completed).length} of {missions.length} Completed</span>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -236,52 +246,54 @@ const Dashboard: React.FC = () => {
           </ul>
         </motion.section>
 
-        <motion.section
-          className="card"
-          variants={cardVariants}
-          initial="initial"
-          animate="animate"
-          whileHover="hover"
-          whileTap="tap"
-          onClick={() => navigate('/missions')}
-        >
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold flex items-center">
-              <Trophy size={20} className="mr-2 text-indigo-500" />
-              Active Missions
-            </h2>
-            <ChevronRight size={20} className="text-neutral-400" />
-          </div>
-          
-          <ul className="space-y-3">
-            {missions.filter(m => !m.completed).map(mission => (
-              <motion.li 
-                key={mission.id} 
-                className="p-3 rounded-lg border border-neutral-100 hover:bg-neutral-50 cursor-pointer"
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-              >
-                <div className="flex justify-between">
-                  <span className="font-medium">{mission.title}</span>
-                  <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">
-                    {Math.round(mission.progress)}%
-                  </span>
-                </div>
-                <div className="text-sm text-neutral-600 mt-1">
-                  {mission.description}
-                </div>
-              </motion.li>
-            ))}
-            {missions.filter(m => !m.completed).length === 0 && (
-              <li className="text-center py-4 text-neutral-500">
-                No active missions
-              </li>
-            )}
-          </ul>
-        </motion.section>
+        {isEnabled('missions') && (
+          <motion.section
+            className="card"
+            variants={cardVariants}
+            initial="initial"
+            animate="animate"
+            whileHover="hover"
+            whileTap="tap"
+            onClick={() => navigate('/missions')}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold flex items-center">
+                <Trophy size={20} className="mr-2 text-indigo-500" />
+                Active Missions
+              </h2>
+              <ChevronRight size={20} className="text-neutral-400" />
+            </div>
+            
+            <ul className="space-y-3">
+              {missions.filter(m => !m.completed).map(mission => (
+                <motion.li 
+                  key={mission.id} 
+                  className="p-3 rounded-lg border border-neutral-100 hover:bg-neutral-50 cursor-pointer"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                >
+                  <div className="flex justify-between">
+                    <span className="font-medium">{mission.title}</span>
+                    <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">
+                      {Math.round(mission.progress)}%
+                    </span>
+                  </div>
+                  <div className="text-sm text-neutral-600 mt-1">
+                    {mission.description}
+                  </div>
+                </motion.li>
+              ))}
+              {missions.filter(m => !m.completed).length === 0 && (
+                <li className="text-center py-4 text-neutral-500">
+                  No active missions
+                </li>
+              )}
+            </ul>
+          </motion.section>
+        )}
 
-        <motion.section
-          className="card"
+        {isEnabled('people') && (
+          <motion.section
           variants={cardVariants}
           initial="initial"
           animate="animate"
@@ -326,9 +338,10 @@ const Dashboard: React.FC = () => {
             )}
           </ul>
         </motion.section>
+        )}
 
-        <motion.section
-          className="card"
+        {isEnabled('journal') && (
+          <motion.section
           variants={cardVariants}
           initial="initial"
           animate="animate"
@@ -371,6 +384,7 @@ const Dashboard: React.FC = () => {
             )}
           </ul>
         </motion.section>
+        )}
       </div>
 
       <motion.section 

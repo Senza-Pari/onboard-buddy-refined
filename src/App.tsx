@@ -17,6 +17,7 @@ import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import ActivateAccount from './pages/ActivateAccount';
 import SharedJourney from './pages/SharedJourney';
+import Admin from './pages/Admin';
 import useAuthStore from './stores/authStore';
 
 function App() {
@@ -69,6 +70,10 @@ function App() {
         <Route 
           path="/templates/:type" 
           element={isAuthenticated ? <TemplateBuilder /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/admin" 
+          element={isAuthenticated ? <Admin /> : <Navigate to="/login" />} 
         />
       </Route>
       

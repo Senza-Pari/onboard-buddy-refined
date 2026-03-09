@@ -14,7 +14,8 @@ import {
   HelpCircle,
   Share2,
   Layout,
-  Sparkles
+  Sparkles,
+  Shield
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useSettingsStore from '../stores/settingsStore';
@@ -27,6 +28,7 @@ import DemoTour from '../components/DemoTour';
 import BuddyChat from '../components/BuddyChat';
 import useDemoTourStore from '../stores/demoTourStore';
 import useDemoStore from '../stores/demoStore';
+import useFeatureStore, { FeatureKey } from '../stores/featureStore';
 
 const AppLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -38,6 +40,7 @@ const AppLayout: React.FC = () => {
   const { user } = useAuthStore();
   const isGuest = user?.id === 'demo-user';
   const { isActive: isTourActive } = useDemoTourStore();
+  const { isEnabled } = useFeatureStore();
 
   const handleReplayTour = () => {
     useDemoStore.getState().reset();
@@ -57,14 +60,16 @@ const AppLayout: React.FC = () => {
     return uuidRegex.test(id);
   };
 
-  const navItems = [
+  const allNavItems: { path: string; icon: React.ReactNode; label: string; featureKey?: FeatureKey }[] = [
     { path: '/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-    { path: '/tasks', icon: <CheckSquare size={20} />, label: 'Tasks' },
-    { path: '/missions', icon: <Trophy size={20} />, label: 'Missions' },
-    { path: '/people', icon: <Users size={20} />, label: 'People' },
-    { path: '/gallery', icon: <BookOpen size={20} />, label: 'Journal' },
-    { path: '/export', icon: <FileText size={20} />, label: 'Export' },
+    { path: '/tasks', icon: <CheckSquare size={20} />, label: 'Tasks', featureKey: 'tasks' },
+    { path: '/missions', icon: <Trophy size={20} />, label: 'Missions', featureKey: 'missions' },
+    { path: '/people', icon: <Users size={20} />, label: 'People', featureKey: 'people' },
+    { path: '/gallery', icon: <BookOpen size={20} />, label: 'Journal', featureKey: 'journal' },
+    { path: '/export', icon: <FileText size={20} />, label: 'Export', featureKey: 'export' },
   ];
+
+  const navItems = allNavItems.filter(item => !item.featureKey || isEnabled(item.featureKey));
 
   const templatesNavItem = {
     path: '/templates',
@@ -132,24 +137,26 @@ const AppLayout: React.FC = () => {
                   </li>
                 ))}
 
-                <li>
-                  <NavLink
-                    to={templatesNavItem.path}
-                    className={({ isActive }) => `
-                      flex items-center px-4 py-3 text-sm font-medium rounded-lg mx-2 relative
-                      ${isActive 
-                        ? 'bg-primary-100 text-primary-700' 
-                        : 'text-neutral-700 hover:bg-neutral-100'
-                      }
-                    `}
-                    onClick={() => setIsSidebarOpen(false)}
-                  >
-                    <span className="mr-3">{templatesNavItem.icon}</span>
-                    {templatesNavItem.label}
-                  </NavLink>
-                </li>
+                {isEnabled('templates') && (
+                  <li>
+                    <NavLink
+                      to={templatesNavItem.path}
+                      className={({ isActive }) => `
+                        flex items-center px-4 py-3 text-sm font-medium rounded-lg mx-2 relative
+                        ${isActive 
+                          ? 'bg-primary-100 text-primary-700' 
+                          : 'text-neutral-700 hover:bg-neutral-100'
+                        }
+                      `}
+                      onClick={() => setIsSidebarOpen(false)}
+                    >
+                      <span className="mr-3">{templatesNavItem.icon}</span>
+                      {templatesNavItem.label}
+                    </NavLink>
+                  </li>
+                )}
 
-                {user && isValidUUID(user.id) && (
+                {isEnabled('shareJourney') && user && isValidUUID(user.id) && (
                   <li>
                     <button
                       onClick={() => setIsShareOpen(true)}
@@ -164,6 +171,17 @@ const AppLayout: React.FC = () => {
             </nav>
             
             <div className="p-4 border-t border-neutral-100 space-y-2">
+              <NavLink
+                to="/admin"
+                className={({ isActive }) => `
+                  flex items-center w-full px-4 py-2 text-sm font-medium rounded-lg
+                  ${isActive ? 'bg-primary-100 text-primary-700' : 'text-neutral-700 hover:bg-neutral-100'}
+                `}
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <Shield size={20} className="mr-3" />
+                Admin
+              </NavLink>
               <button 
                 onClick={() => setIsHelpOpen(true)}
                 className="flex items-center w-full px-4 py-2 text-sm font-medium text-neutral-700 rounded-lg hover:bg-neutral-100"
