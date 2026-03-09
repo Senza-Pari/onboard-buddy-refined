@@ -87,27 +87,29 @@ const Dashboard: React.FC = () => {
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <div className="flex items-center gap-3">
-            <ShareJourneyButton
-              userName={user?.name || 'New Hire'}
-              company={user?.company || 'Company'}
-              startDate={user?.startDate || new Date().toISOString().split('T')[0]}
-              taskProgress={taskProgress}
-              tasksCompleted={completedTasks}
-              totalTasks={totalTasks}
-              missionsCompleted={missions.filter(m => m.completed).length}
-              totalMissions={missions.length}
-              peopleMetCount={people.length}
-              journalEntries={journalItems.length}
-              recentTasks={upcomingTasks.slice(0, 5).map(t => ({
-                title: t.title,
-                completed: t.completed,
-                dueDate: t.dueDate
-              }))}
-              recentMissions={missions.filter(m => !m.completed).slice(0, 3).map(m => ({
-                title: m.title,
-                progress: m.progress
-              }))}
-            />
+            {isEnabled('shareJourney') && (
+              <ShareJourneyButton
+                userName={user?.name || 'New Hire'}
+                company={user?.company || 'Company'}
+                startDate={user?.startDate || new Date().toISOString().split('T')[0]}
+                taskProgress={taskProgress}
+                tasksCompleted={completedTasks}
+                totalTasks={totalTasks}
+                missionsCompleted={missions.filter(m => m.completed).length}
+                totalMissions={missions.length}
+                peopleMetCount={people.length}
+                journalEntries={journalItems.length}
+                recentTasks={upcomingTasks.slice(0, 5).map(t => ({
+                  title: t.title,
+                  completed: t.completed,
+                  dueDate: t.dueDate
+                }))}
+                recentMissions={missions.filter(m => !m.completed).slice(0, 3).map(m => ({
+                  title: m.title,
+                  progress: m.progress
+                }))}
+              />
+            )}
             <div className="relative">
               <motion.button 
                 className="p-3 rounded-full bg-neutral-100 hover:bg-neutral-200 min-w-[44px] min-h-[44px] flex items-center justify-center"
