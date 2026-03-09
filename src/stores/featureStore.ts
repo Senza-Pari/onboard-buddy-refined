@@ -13,7 +13,8 @@ export type FeatureKey =
   | 'aiTaskSuggestions'
   | 'milestoneCelebrations'
   | 'whatToDoNow'
-  | 'overdueWarnings';
+  | 'overdueWarnings'
+  | 'premiumPrompts';
 
 export interface FeatureConfig {
   enabled: boolean;
