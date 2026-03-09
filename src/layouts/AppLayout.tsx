@@ -14,7 +14,8 @@ import {
   HelpCircle,
   Share2,
   Layout,
-  Sparkles
+  Sparkles,
+  Shield
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useSettingsStore from '../stores/settingsStore';
