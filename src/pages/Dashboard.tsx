@@ -110,6 +110,16 @@ const Dashboard: React.FC = () => {
         <p className="text-neutral-700">Welcome back! Here's your onboarding progress.</p>
       </header>
 
+      {/* What To Do Now Card */}
+      <WhatToDoNow tasks={tasks} onComplete={handleTaskComplete} />
+
+      {/* Milestone Celebration */}
+      <MilestoneCelebration 
+        progress={taskProgress} 
+        userName={user?.name?.split(' ')[0] || 'there'}
+        onDismiss={handleMilestoneDismiss}
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <motion.div 
           className="bg-gradient-to-r from-primary-400 to-primary-500 rounded-xl p-6 text-white shadow-medium cursor-pointer"
