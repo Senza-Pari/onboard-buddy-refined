@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -41,6 +41,18 @@ const AppLayout: React.FC = () => {
   const isGuest = user?.id === 'demo-user';
   const { isActive: isTourActive } = useDemoTourStore();
   const { isEnabled } = useFeatureStore();
+
+  // Listen for custom events from mobile More menu
+  useEffect(() => {
+    const openSettings = () => setIsSettingsOpen(true);
+    const openHelp = () => setIsHelpOpen(true);
+    window.addEventListener('open-settings', openSettings);
+    window.addEventListener('open-help', openHelp);
+    return () => {
+      window.removeEventListener('open-settings', openSettings);
+      window.removeEventListener('open-help', openHelp);
+    };
+  }, []);
 
   const handleReplayTour = () => {
     useDemoStore.getState().reset();
