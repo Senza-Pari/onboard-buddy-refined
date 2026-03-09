@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, CheckSquare, Trophy, Users, BookOpen, MessageCircle, MoreHorizontal, FileText, Layout, Shield, Settings, HelpCircle, LogOut, Share2, X } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Trophy, Users, BookOpen, MessageCircle, MoreHorizontal, FileText, Layout, Shield, Settings, HelpCircle, LogOut, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useDemoTourStore from '../stores/demoTourStore';
 import BuddyChatDrawer from './BuddyChatDrawer';
