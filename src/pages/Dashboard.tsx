@@ -341,7 +341,7 @@ const Dashboard: React.FC = () => {
         )}
 
         {isEnabled('journal') && (
-          className="card"
+          <motion.section
           variants={cardVariants}
           initial="initial"
           animate="animate"
