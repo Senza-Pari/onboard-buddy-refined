@@ -102,6 +102,12 @@ const defaultFeatures: Record<FeatureKey, FeatureConfig> = {
     category: 'addon',
     description: 'Red badges and sorting for tasks past their due date.',
   },
+  premiumPrompts: {
+    enabled: true,
+    label: 'Premium / Upgrade Prompts',
+    category: 'addon',
+    description: 'Banners and pop-ups promoting premium upgrades and pricing.',
+  },
 };
 
 const useFeatureStore = create<FeatureState>()(
