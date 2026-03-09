@@ -3,13 +3,14 @@ import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, CheckSquare, Trophy, Users, BookOpen, MessageCircle } from 'lucide-react';
 import useDemoTourStore from '../stores/demoTourStore';
 import BuddyChatDrawer from './BuddyChatDrawer';
+import useFeatureStore, { FeatureKey } from '../stores/featureStore';
 
-const navItems = [
+const allNavItems: { path: string; icon: typeof LayoutDashboard; label: string; featureKey?: FeatureKey }[] = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'Home' },
-  { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
-  { path: '/missions', icon: Trophy, label: 'Missions' },
-  { path: '/people', icon: Users, label: 'People' },
-  { path: '/gallery', icon: BookOpen, label: 'Journal' },
+  { path: '/tasks', icon: CheckSquare, label: 'Tasks', featureKey: 'tasks' },
+  { path: '/missions', icon: Trophy, label: 'Missions', featureKey: 'missions' },
+  { path: '/people', icon: Users, label: 'People', featureKey: 'people' },
+  { path: '/gallery', icon: BookOpen, label: 'Journal', featureKey: 'journal' },
 ];
 
 const BottomNav: React.FC = () => {
