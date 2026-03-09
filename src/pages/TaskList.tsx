@@ -281,16 +281,29 @@ const TaskList: React.FC = () => {
       </div>
 
       <motion.div 
-        className="mb-6"
+        className="mb-6 flex flex-col sm:flex-row gap-3"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         <button 
-          className="btn-primary flex items-center justify-center gap-2 max-w-xs"
+          className="btn-primary flex items-center justify-center gap-2 flex-1 sm:flex-initial"
           onClick={() => setIsAddingTask(true)}
         >
           <Plus size={20} />
           Add Detailed Task
+        </button>
+        
+        <button 
+          className="btn-secondary flex items-center justify-center gap-2 flex-1 sm:flex-initial"
+          onClick={handleSuggestTasks}
+          disabled={isSuggestingTasks}
+        >
+          {isSuggestingTasks ? (
+            <Loader2 size={20} className="animate-spin" />
+          ) : (
+            <Sparkles size={20} />
+          )}
+          {isSuggestingTasks ? 'Generating...' : 'Suggest Tasks for Me'}
         </button>
       </motion.div>
 
