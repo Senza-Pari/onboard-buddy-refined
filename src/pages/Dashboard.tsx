@@ -139,14 +139,18 @@ const Dashboard: React.FC = () => {
       </header>
 
       {/* What To Do Now Card */}
-      <WhatToDoNow tasks={tasks} onComplete={handleTaskComplete} />
+      {isEnabled('whatToDoNow') && (
+        <WhatToDoNow tasks={tasks} onComplete={handleTaskComplete} />
+      )}
 
       {/* Milestone Celebration */}
-      <MilestoneCelebration 
-        progress={taskProgress} 
-        userName={user?.name?.split(' ')[0] || 'there'}
-        onDismiss={handleMilestoneDismiss}
-      />
+      {isEnabled('milestoneCelebrations') && (
+        <MilestoneCelebration 
+          progress={taskProgress} 
+          userName={user?.name?.split(' ')[0] || 'there'}
+          onDismiss={handleMilestoneDismiss}
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <motion.div 
