@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Crown, X, Check, Zap, Users, Settings, BarChart3 } from 'lucide-react';
+import useFeatureStore from '../stores/featureStore';
 import { Link } from 'react-router-dom';
 
 interface PremiumUpgradeModalProps {
@@ -39,7 +40,8 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
   feature,
   context,
 }) => {
-  if (!isOpen) return null;
+  const isEnabled = useFeatureStore((s) => s.isEnabled);
+  if (!isOpen || !isEnabled('premiumPrompts')) return null;
 
   return (
     <AnimatePresence>

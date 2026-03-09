@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import useFeatureStore from '../stores/featureStore';
 
 const PremiumBanner: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);
+  const isEnabled = useFeatureStore((s) => s.isEnabled);
 
-  if (!isVisible) return null;
+  if (!isVisible || !isEnabled('premiumPrompts')) return null;
 
   return (
     <AnimatePresence>

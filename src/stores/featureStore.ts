@@ -13,7 +13,8 @@ export type FeatureKey =
   | 'aiTaskSuggestions'
   | 'milestoneCelebrations'
   | 'whatToDoNow'
-  | 'overdueWarnings';
+  | 'overdueWarnings'
+  | 'premiumPrompts';
 
 export interface FeatureConfig {
   enabled: boolean;
@@ -100,6 +101,12 @@ const defaultFeatures: Record<FeatureKey, FeatureConfig> = {
     label: 'Overdue Warnings',
     category: 'addon',
     description: 'Red badges and sorting for tasks past their due date.',
+  },
+  premiumPrompts: {
+    enabled: true,
+    label: 'Premium / Upgrade Prompts',
+    category: 'addon',
+    description: 'Banners and pop-ups promoting premium upgrades and pricing.',
   },
 };
 
