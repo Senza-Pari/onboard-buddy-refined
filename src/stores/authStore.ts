@@ -224,24 +224,7 @@ const useAuthStore = create<AuthState>()(
 
           console.log('Account created successfully for:', user.email);
           
-          // Create default subscription record
-          try {
-            const { error: subscriptionError } = await supabase
-              .from('subscriptions')
-              .insert({
-                user_id: user.id,
-                plan: 'free',
-                status: 'active'
-              });
-
-            if (subscriptionError) {
-              console.warn('Failed to create subscription record:', subscriptionError);
-              // Don't fail the signup for this
-            }
-          } catch (subError) {
-            console.warn('Subscription creation error:', subError);
-            // Don't fail the signup for this
-          }
+          // Subscription creation skipped - no subscriptions table yet
 
           set({
             user,
