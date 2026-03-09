@@ -42,6 +42,18 @@ const AppLayout: React.FC = () => {
   const { isActive: isTourActive } = useDemoTourStore();
   const { isEnabled } = useFeatureStore();
 
+  // Listen for custom events from mobile More menu
+  useEffect(() => {
+    const openSettings = () => setIsSettingsOpen(true);
+    const openHelp = () => setIsHelpOpen(true);
+    window.addEventListener('open-settings', openSettings);
+    window.addEventListener('open-help', openHelp);
+    return () => {
+      window.removeEventListener('open-settings', openSettings);
+      window.removeEventListener('open-help', openHelp);
+    };
+  }, []);
+
   const handleReplayTour = () => {
     useDemoStore.getState().reset();
     useDemoTourStore.getState().start();
