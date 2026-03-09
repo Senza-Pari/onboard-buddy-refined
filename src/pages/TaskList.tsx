@@ -375,9 +375,12 @@ const TaskList: React.FC = () => {
               
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-start justify-between gap-2">
-                  <h3 className={`text-lg font-medium ${task.completed ? 'line-through text-neutral-500' : ''}`}>
-                    {task.title}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className={`text-lg font-medium ${task.completed ? 'line-through text-neutral-500' : ''}`}>
+                      {task.title}
+                    </h3>
+                    <OverdueTaskBadge dueDate={task.dueDate} />
+                  </div>
                   <div className="flex items-center gap-2">
                     <div className="flex flex-wrap gap-1">
                       {(task.tags || []).map(tag => (
