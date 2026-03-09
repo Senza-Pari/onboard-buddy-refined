@@ -40,7 +40,8 @@ const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
   feature,
   context,
 }) => {
-  if (!isOpen) return null;
+  const isEnabled = useFeatureStore((s) => s.isEnabled);
+  if (!isOpen || !isEnabled('premiumPrompts')) return null;
 
   return (
     <AnimatePresence>
