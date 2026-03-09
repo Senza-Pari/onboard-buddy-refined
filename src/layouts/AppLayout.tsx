@@ -137,24 +137,26 @@ const AppLayout: React.FC = () => {
                   </li>
                 ))}
 
-                <li>
-                  <NavLink
-                    to={templatesNavItem.path}
-                    className={({ isActive }) => `
-                      flex items-center px-4 py-3 text-sm font-medium rounded-lg mx-2 relative
-                      ${isActive 
-                        ? 'bg-primary-100 text-primary-700' 
-                        : 'text-neutral-700 hover:bg-neutral-100'
-                      }
-                    `}
-                    onClick={() => setIsSidebarOpen(false)}
-                  >
-                    <span className="mr-3">{templatesNavItem.icon}</span>
-                    {templatesNavItem.label}
-                  </NavLink>
-                </li>
+                {isEnabled('templates') && (
+                  <li>
+                    <NavLink
+                      to={templatesNavItem.path}
+                      className={({ isActive }) => `
+                        flex items-center px-4 py-3 text-sm font-medium rounded-lg mx-2 relative
+                        ${isActive 
+                          ? 'bg-primary-100 text-primary-700' 
+                          : 'text-neutral-700 hover:bg-neutral-100'
+                        }
+                      `}
+                      onClick={() => setIsSidebarOpen(false)}
+                    >
+                      <span className="mr-3">{templatesNavItem.icon}</span>
+                      {templatesNavItem.label}
+                    </NavLink>
+                  </li>
+                )}
 
-                {user && isValidUUID(user.id) && (
+                {isEnabled('shareJourney') && user && isValidUUID(user.id) && (
                   <li>
                     <button
                       onClick={() => setIsShareOpen(true)}
