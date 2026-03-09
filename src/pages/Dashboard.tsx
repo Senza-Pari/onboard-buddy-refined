@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   CheckSquare, 
@@ -17,6 +17,8 @@ import { useTaskData, useGalleryData } from '../hooks/useAppData';
 import useNotificationStore from '../stores/notificationStore';
 import NotificationCenter from '../components/NotificationCenter';
 import usePeopleStore from '../stores/peopleStore';
+import WhatToDoNow from '../components/WhatToDoNow';
+import MilestoneCelebration from '../components/MilestoneCelebration';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
