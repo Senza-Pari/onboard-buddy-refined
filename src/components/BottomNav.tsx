@@ -28,8 +28,8 @@ const BottomNav: React.FC = () => {
     ...(isEnabled('export') ? [{ icon: FileText, label: 'Export', path: '/export' }] : []),
     ...(isEnabled('templates') ? [{ icon: Layout, label: 'Templates', path: '/templates' }] : []),
     { icon: Shield, label: 'Admin', path: '/admin' },
-    { icon: Settings, label: 'Settings', path: undefined, action: () => {} },
-    { icon: HelpCircle, label: 'Help Center', path: undefined, action: () => {} },
+    { icon: Settings, label: 'Settings', path: undefined, action: () => window.dispatchEvent(new CustomEvent('open-settings')) },
+    { icon: HelpCircle, label: 'Help Center', path: undefined, action: () => window.dispatchEvent(new CustomEvent('open-help')) },
     { icon: LogOut, label: 'Sign Out', path: undefined, action: () => navigate('/') },
   ];
 
