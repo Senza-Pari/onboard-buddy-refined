@@ -40,6 +40,7 @@ const AppLayout: React.FC = () => {
   const { user } = useAuthStore();
   const isGuest = user?.id === 'demo-user';
   const { isActive: isTourActive } = useDemoTourStore();
+  const { isEnabled } = useFeatureStore();
 
   const handleReplayTour = () => {
     useDemoStore.getState().reset();
