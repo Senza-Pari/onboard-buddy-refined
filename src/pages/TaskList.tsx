@@ -381,7 +381,7 @@ const TaskList: React.FC = () => {
                     </h3>
                     <OverdueTaskBadge dueDate={task.dueDate} />
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <div className="flex flex-wrap gap-1">
                       {(task.tags || []).map(tag => (
                         <span key={tag} className="px-2 py-1 bg-neutral-100 text-neutral-700 rounded-full text-sm">
