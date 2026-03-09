@@ -171,6 +171,17 @@ const AppLayout: React.FC = () => {
             </nav>
             
             <div className="p-4 border-t border-neutral-100 space-y-2">
+              <NavLink
+                to="/admin"
+                className={({ isActive }) => `
+                  flex items-center w-full px-4 py-2 text-sm font-medium rounded-lg
+                  ${isActive ? 'bg-primary-100 text-primary-700' : 'text-neutral-700 hover:bg-neutral-100'}
+                `}
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <Shield size={20} className="mr-3" />
+                Admin
+              </NavLink>
               <button 
                 onClick={() => setIsHelpOpen(true)}
                 className="flex items-center w-full px-4 py-2 text-sm font-medium text-neutral-700 rounded-lg hover:bg-neutral-100"
