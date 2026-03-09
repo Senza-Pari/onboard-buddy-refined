@@ -246,51 +246,53 @@ const Dashboard: React.FC = () => {
           </ul>
         </motion.section>
 
-        <motion.section
-          className="card"
-          variants={cardVariants}
-          initial="initial"
-          animate="animate"
-          whileHover="hover"
-          whileTap="tap"
-          onClick={() => navigate('/missions')}
-        >
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold flex items-center">
-              <Trophy size={20} className="mr-2 text-indigo-500" />
-              Active Missions
-            </h2>
-            <ChevronRight size={20} className="text-neutral-400" />
-          </div>
-          
-          <ul className="space-y-3">
-            {missions.filter(m => !m.completed).map(mission => (
-              <motion.li 
-                key={mission.id} 
-                className="p-3 rounded-lg border border-neutral-100 hover:bg-neutral-50 cursor-pointer"
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-              >
-                <div className="flex justify-between">
-                  <span className="font-medium">{mission.title}</span>
-                  <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">
-                    {Math.round(mission.progress)}%
-                  </span>
-                </div>
-                <div className="text-sm text-neutral-600 mt-1">
-                  {mission.description}
-                </div>
-              </motion.li>
-            ))}
-            {missions.filter(m => !m.completed).length === 0 && (
-              <li className="text-center py-4 text-neutral-500">
-                No active missions
-              </li>
-            )}
-          </ul>
-        </motion.section>
+        {isEnabled('missions') && (
+          <motion.section
+            className="card"
+            variants={cardVariants}
+            initial="initial"
+            animate="animate"
+            whileHover="hover"
+            whileTap="tap"
+            onClick={() => navigate('/missions')}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold flex items-center">
+                <Trophy size={20} className="mr-2 text-indigo-500" />
+                Active Missions
+              </h2>
+              <ChevronRight size={20} className="text-neutral-400" />
+            </div>
+            
+            <ul className="space-y-3">
+              {missions.filter(m => !m.completed).map(mission => (
+                <motion.li 
+                  key={mission.id} 
+                  className="p-3 rounded-lg border border-neutral-100 hover:bg-neutral-50 cursor-pointer"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                >
+                  <div className="flex justify-between">
+                    <span className="font-medium">{mission.title}</span>
+                    <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">
+                      {Math.round(mission.progress)}%
+                    </span>
+                  </div>
+                  <div className="text-sm text-neutral-600 mt-1">
+                    {mission.description}
+                  </div>
+                </motion.li>
+              ))}
+              {missions.filter(m => !m.completed).length === 0 && (
+                <li className="text-center py-4 text-neutral-500">
+                  No active missions
+                </li>
+              )}
+            </ul>
+          </motion.section>
+        )}
 
-        <motion.section
+        {isEnabled('people') && (
           className="card"
           variants={cardVariants}
           initial="initial"
