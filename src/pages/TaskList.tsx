@@ -64,13 +64,23 @@ const TaskList: React.FC = () => {
       return true;
     })
     .sort((a, b) => {
-      // Incomplete tasks float to the top, completed sink to the bottom
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const aDate = a.dueDate ? new Date(a.dueDate) : null;
+      const bDate = b.dueDate ? new Date(b.dueDate) : null;
+      const aOverdue = aDate && aDate < today && !a.completed;
+      const bOverdue = bDate && bDate < today && !b.completed;
+
+      // Overdue incomplete tasks float to the very top
+      if (aOverdue && !bOverdue) return -1;
+      if (!aOverdue && bOverdue) return 1;
+
+      // Incomplete tasks above completed
       if (a.completed !== b.completed) return a.completed ? 1 : -1;
+
       // Among incomplete: soonest due date first
-      if (!a.completed && !b.completed) {
-        const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
-        const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
-        return aDate - bDate;
+      if (!a.completed && !b.completed && aDate && bDate) {
+        return aDate.getTime() - bDate.getTime();
       }
       return 0;
     });
