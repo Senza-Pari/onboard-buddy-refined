@@ -338,8 +338,9 @@ const Dashboard: React.FC = () => {
             )}
           </ul>
         </motion.section>
+        )}
 
-        <motion.section
+        {isEnabled('journal') && (
           className="card"
           variants={cardVariants}
           initial="initial"
