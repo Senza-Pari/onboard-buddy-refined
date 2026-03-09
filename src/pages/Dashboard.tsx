@@ -175,27 +175,29 @@ const Dashboard: React.FC = () => {
           </div>
         </motion.div>
 
-        <motion.div 
-          className="bg-gradient-to-r from-indigo-400 to-indigo-500 rounded-xl p-6 text-white shadow-medium cursor-pointer"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          transition={{ duration: 0.2 }}
-          onClick={() => navigate('/missions')}
-        >
-          <h2 className="text-xl font-bold mb-2">Mission Progress</h2>
-          <div className="w-full bg-white/30 rounded-full h-2.5 mb-4">
-            <div 
-              className="bg-white h-2.5 rounded-full" 
-              style={{ width: `${missionProgress}%` }}
-            ></div>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span>{missionProgress}% Complete</span>
-            <span>{missions.filter(m => m.completed).length} of {missions.length} Completed</span>
-          </div>
-        </motion.div>
+        {isEnabled('missions') && (
+          <motion.div 
+            className="bg-gradient-to-r from-indigo-400 to-indigo-500 rounded-xl p-6 text-white shadow-medium cursor-pointer"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => navigate('/missions')}
+          >
+            <h2 className="text-xl font-bold mb-2">Mission Progress</h2>
+            <div className="w-full bg-white/30 rounded-full h-2.5 mb-4">
+              <div 
+                className="bg-white h-2.5 rounded-full" 
+                style={{ width: `${missionProgress}%` }}
+              ></div>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>{missionProgress}% Complete</span>
+              <span>{missions.filter(m => m.completed).length} of {missions.length} Completed</span>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
