@@ -43,19 +43,20 @@ const useAuthStore = create<AuthState>()(
       testConnection: async () => {
         try {
           console.log('Testing Supabase connection...');
-          const { error } = await supabase.from('roles').select('count').limit(1);
+          // Simple health check using auth
+          const { error } = await supabase.auth.getSession();
           
           if (error) {
-            console.error('Database connection test failed:', error);
-            set({ lastError: `Database connection failed: ${error.message}` });
+            console.error('Connection test failed:', error);
+            set({ lastError: `Connection failed: ${error.message}` });
             return false;
           }
           
-          console.log('Database connection successful');
+          console.log('Connection successful');
           return true;
         } catch (error) {
           console.error('Connection test error:', error);
-          set({ lastError: 'Unable to connect to database services' });
+          set({ lastError: 'Unable to connect to services' });
           return false;
         }
       },
