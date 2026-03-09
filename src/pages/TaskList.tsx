@@ -28,6 +28,7 @@ const TaskList: React.FC = () => {
   const [quickAddTitle, setQuickAddTitle] = useState('');
   const [promptTaskId, setPromptTaskId] = useState<number | null>(null);
   const [promptNote, setPromptNote] = useState('');
+  const [isSuggestingTasks, setIsSuggestingTasks] = useState(false);
   const promptRef = useRef<HTMLInputElement>(null);
 
   const isTourOnTasks = isTourActive && TOUR_STEPS[currentStep]?.route === '/tasks';
