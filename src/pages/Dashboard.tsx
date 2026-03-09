@@ -384,6 +384,7 @@ const Dashboard: React.FC = () => {
             )}
           </ul>
         </motion.section>
+        )}
       </div>
 
       <motion.section 
