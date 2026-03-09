@@ -16,6 +16,7 @@ import AppLayout from './layouts/AppLayout';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import ActivateAccount from './pages/ActivateAccount';
+import SharedJourney from './pages/SharedJourney';
 import useAuthStore from './stores/authStore';
 
 function App() {
