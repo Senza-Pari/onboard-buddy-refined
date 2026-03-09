@@ -29,6 +29,7 @@ const Dashboard: React.FC = () => {
   const { missions } = useMissionStore();
   const { unreadCount } = useNotificationStore();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const { isEnabled } = useFeatureStore();
 
   const handleTaskComplete = useCallback((task: { id: number }) => {
     toggleTaskCompletion(task.id);
