@@ -1,32 +1,60 @@
 
 
-# Fix White Screen and Update Hero Image
+# Admin Feature Control Panel
 
-## Problem 1: White Screen
-The app crashes on load because `BuddyChatDrawer.tsx` imports from `@/integrations/supabase/client`, which is the auto-generated Supabase client. This client calls `createClient(undefined, undefined)` when environment variables aren't available, throwing "supabaseUrl is required" and crashing the entire app.
+## What We're Building
+A new `/admin` route with a feature toggle dashboard. Each major feature in the app can be turned on/off, and is labeled as either **Core** (essential to onboarding) or **Add-on** (enhances the experience). Toggling a feature off hides it from the sidebar, bottom nav, and dashboard.
 
-## Problem 2: Hero Image Update
-You want to replace the current Welcome page background image with the uploaded professional woman photo.
+## Feature Registry
 
-## Solution
+| Feature | Category | Controls |
+|---------|----------|----------|
+| Tasks | Core | `/tasks` route, nav item, dashboard card |
+| Missions | Core | `/missions` route, nav item, dashboard card |
+| People / Meet & Greet | Core | `/people` route, nav item, dashboard card |
+| Journal / Gallery | Core | `/gallery` route, nav item, dashboard card |
+| Buddy AI Chat | Add-on | Chat FAB, bottom nav buddy button |
+| Export / PDF | Add-on | `/export` route, nav item |
+| Templates | Add-on | `/templates` route, nav item |
+| Share Journey | Add-on | Share button in sidebar |
+| AI Task Suggestions | Add-on | Suggest button on Tasks page |
+| Milestone Celebrations | Add-on | Confetti overlay |
+| "What To Do Now" Card | Add-on | Dashboard priority card |
+| Overdue Warnings | Add-on | Red badges on tasks |
 
-### 1. Fix White Screen (`src/components/BuddyChatDrawer.tsx`)
-- Remove the import of the auto-generated Supabase client
-- Instead, build the Supabase URL and key using the project ID constant as a reliable fallback:
-  - URL: `https://tsfnrqcrttxaorcxkhoy.supabase.co`
-  - Key: use `VITE_SUPABASE_PUBLISHABLE_KEY` env var
-- This avoids the crash because we won't call `createClient()` at all -- we only need the URL and key strings for fetch calls
+## Implementation
 
-### 2. Update Hero Image
-- Copy the uploaded image to `public/images/hero-welcome.png`
-- Update the default background URL in `src/stores/imageStore.ts` (line 26) to point to `/images/hero-welcome.png` instead of the external `cameronstewart.click` URL
-- Update `src/components/CoverImageSettings.tsx` references to the default URL as well
+### 1. New Store: `src/stores/featureStore.ts`
+- Zustand + persist
+- Object map of feature keys → `{ enabled: boolean, label: string, category: 'core' | 'addon', description: string }`
+- `toggleFeature(key)` and `isEnabled(key)` methods
+- All features default to `enabled: true`
 
-### Files Changed
+### 2. New Page: `src/pages/Admin.tsx`
+- Two sections: "Core Features" and "Add-on Features"
+- Each feature shows: name, description, category badge, toggle switch
+- Core features show a warning when disabling ("This is a core feature")
+- Clean card-based layout matching existing app style
+- Only accessible to super_admin role (hardcoded check from authStore)
 
-| File | Change |
+### 3. Updated Files (consume `featureStore.isEnabled()`)
+- **`src/layouts/AppLayout.tsx`** — conditionally render sidebar nav items
+- **`src/components/BottomNav.tsx`** — conditionally render bottom nav items
+- **`src/pages/Dashboard.tsx`** — conditionally render cards (missions, people, journal, WhatToDoNow)
+- **`src/App.tsx`** — add `/admin` route (protected, super_admin only)
+
+### 4. Nav Entry
+- Add "Admin" link in sidebar footer (next to Settings), visible only to super_admin users
+- Uses `Shield` icon from lucide-react
+
+## Files Changed/Created
+
+| File | Action |
 |------|--------|
-| `src/components/BuddyChatDrawer.tsx` | Remove `@/integrations/supabase/client` import; use hardcoded project URL as fallback |
-| `src/stores/imageStore.ts` | Change default welcome background to new hero image |
-| `src/components/CoverImageSettings.tsx` | Update default image URL references to match |
-| `public/images/hero-welcome.png` | New file -- the uploaded hero image |
+| `src/stores/featureStore.ts` | **Create** — feature toggle state |
+| `src/pages/Admin.tsx` | **Create** — admin panel UI |
+| `src/layouts/AppLayout.tsx` | **Edit** — filter nav items by feature flags, add Admin link |
+| `src/components/BottomNav.tsx` | **Edit** — filter nav items by feature flags |
+| `src/pages/Dashboard.tsx` | **Edit** — conditionally render sections |
+| `src/App.tsx` | **Edit** — add `/admin` route |
+
