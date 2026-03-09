@@ -28,6 +28,7 @@ import DemoTour from '../components/DemoTour';
 import BuddyChat from '../components/BuddyChat';
 import useDemoTourStore from '../stores/demoTourStore';
 import useDemoStore from '../stores/demoStore';
+import useFeatureStore, { FeatureKey } from '../stores/featureStore';
 
 const AppLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
