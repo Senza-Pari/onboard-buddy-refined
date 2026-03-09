@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Crown, X, Check, Zap, Users, Settings, BarChart3 } from 'lucide-react';
+import useFeatureStore from '../stores/featureStore';
 import { Link } from 'react-router-dom';
 
 interface PremiumUpgradeModalProps {
