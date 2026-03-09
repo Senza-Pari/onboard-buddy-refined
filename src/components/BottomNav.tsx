@@ -16,6 +16,10 @@ const allNavItems: { path: string; icon: typeof LayoutDashboard; label: string; 
 const BottomNav: React.FC = () => {
   const { isActive: isTourActive } = useDemoTourStore();
   const [isBuddyOpen, setIsBuddyOpen] = useState(false);
+  const { isEnabled } = useFeatureStore();
+
+  const navItems = allNavItems.filter(item => !item.featureKey || isEnabled(item.featureKey));
+  const showBuddy = isEnabled('buddyChat');
 
   return (
     <>
