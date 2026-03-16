@@ -1,9 +1,23 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import useDemoStore from './demoStore';
 import useDemoTourStore from './demoTourStore';
 import useMissionStore from './missionStore';
+
+// Fetch roles from user_roles table via RPC
+async function fetchUserRoles(userId: string): Promise<string[]> {
+  try {
+    const { data, error } = await supabase.rpc('get_user_roles', { _user_id: userId });
+    if (error) {
+      console.error('Failed to fetch user roles:', error);
+      return ['user'];
+    }
+    return (data as string[]) || ['user'];
+  } catch {
+    return ['user'];
+  }
+}
 
 interface User {
   id: string;
