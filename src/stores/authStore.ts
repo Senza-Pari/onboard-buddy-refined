@@ -107,17 +107,17 @@ const useAuthStore = create<AuthState>()(
           }
 
           if (data.user) {
+            const roles = await fetchUserRoles(data.user.id);
             const user = {
               id: data.user.id,
               email: data.user.email!,
               name: data.user.user_metadata.name || '',
               company: data.user.user_metadata.company || '',
               startDate: data.user.user_metadata.startDate || new Date().toISOString().split('T')[0],
-              roles: ['new_hire'],
-              permissions: [],
+              roles,
+              permissions: roles.includes('admin') ? ['*'] : [],
             };
 
-            console.log('Login successful for user:', user.email);
             set({
               user,
               isAuthenticated: true,
