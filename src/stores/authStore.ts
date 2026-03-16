@@ -205,14 +205,15 @@ const useAuthStore = create<AuthState>()(
           }
 
           // Auto-login after successful signup
+          const roles = await fetchUserRoles(data.user.id);
           const user = {
             id: data.user.id,
             email: data.user.email!,
             name: data.user.user_metadata?.name || name,
             company: data.user.user_metadata?.company || company,
             startDate: data.user.user_metadata?.startDate || new Date().toISOString().split('T')[0],
-            roles: ['new_hire'],
-            permissions: [],
+            roles: roles.length > 0 ? roles : ['user'],
+            permissions: roles.includes('admin') ? ['*'] : [],
           };
 
           console.log('Account created successfully for:', user.email);
