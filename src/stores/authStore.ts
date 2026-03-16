@@ -75,28 +75,7 @@ const useAuthStore = create<AuthState>()(
         set({ isLoading: true, lastError: null });
         
         try {
-          // Super admin check (hardcoded bypass)
-          if (email === 'cam@dollen.com' || email === 'admin@company.com') {
-            const user = {
-              id: 'super-admin',
-              email,
-              name: 'Super Admin',
-              company: 'StackBlitz',
-              startDate: new Date().toISOString().split('T')[0],
-              roles: ['super_admin'],
-              permissions: ['*'],
-            };
-            
-            set({
-              user,
-              isAuthenticated: true,
-              isLoading: false,
-              lastError: null,
-            });
-            return;
-          }
-
-          // Test connection first for non-admin users
+          // Test connection first
           const connectionOk = await get().testConnection();
           if (!connectionOk) {
             throw new Error('Database connection failed. Please check your internet connection and try again.');
