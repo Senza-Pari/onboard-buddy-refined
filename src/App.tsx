@@ -19,6 +19,7 @@ import ActivateAccount from './pages/ActivateAccount';
 import SharedJourney from './pages/SharedJourney';
 import Admin from './pages/Admin';
 import useAuthStore from './stores/authStore';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -73,7 +74,11 @@ function App() {
         />
         <Route 
           path="/admin" 
-          element={isAuthenticated ? <Admin /> : <Navigate to="/login" />} 
+          element={
+            <ProtectedRoute requiredRoles={['admin']}>
+              <Admin />
+            </ProtectedRoute>
+          } 
         />
       </Route>
       

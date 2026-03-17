@@ -95,7 +95,7 @@ const useAuthStore = create<AuthState>()(
             throw new Error('Database connection failed. Please check your internet connection and try again.');
           }
 
-          console.log('Attempting login for:', email);
+          if (import.meta.env.DEV) console.log('Attempting login for:', email);
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
@@ -164,9 +164,11 @@ const useAuthStore = create<AuthState>()(
             throw new Error('Please enter a valid email address');
           }
 
-          console.log('Attempting signup for:', email);
-          console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-          console.log('Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
+          if (import.meta.env.DEV) {
+            console.log('Attempting signup for:', email);
+            console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+            console.log('Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
+          }
 
           const { data, error } = await supabase.auth.signUp({
             email,
@@ -197,7 +199,7 @@ const useAuthStore = create<AuthState>()(
             }
           }
 
-          console.log('Signup response:', data);
+          if (import.meta.env.DEV) console.log('Signup response:', data);
 
           // Check if user was created successfully
           if (!data.user) {
@@ -216,7 +218,7 @@ const useAuthStore = create<AuthState>()(
             permissions: roles.includes('admin') ? ['*'] : [],
           };
 
-          console.log('Account created successfully for:', user.email);
+          if (import.meta.env.DEV) console.log('Account created successfully for:', user.email);
           
           // Subscription creation skipped - no subscriptions table yet
 
