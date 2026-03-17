@@ -95,7 +95,7 @@ const useAuthStore = create<AuthState>()(
             throw new Error('Database connection failed. Please check your internet connection and try again.');
           }
 
-          console.log('Attempting login for:', email);
+          if (import.meta.env.DEV) console.log('Attempting login for:', email);
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
