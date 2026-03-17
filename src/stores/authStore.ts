@@ -199,7 +199,7 @@ const useAuthStore = create<AuthState>()(
             }
           }
 
-          console.log('Signup response:', data);
+          if (import.meta.env.DEV) console.log('Signup response:', data);
 
           // Check if user was created successfully
           if (!data.user) {
