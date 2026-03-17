@@ -164,9 +164,11 @@ const useAuthStore = create<AuthState>()(
             throw new Error('Please enter a valid email address');
           }
 
-          console.log('Attempting signup for:', email);
-          console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-          console.log('Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
+          if (import.meta.env.DEV) {
+            console.log('Attempting signup for:', email);
+            console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+            console.log('Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
+          }
 
           const { data, error } = await supabase.auth.signUp({
             email,
