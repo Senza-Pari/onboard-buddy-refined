@@ -37,7 +37,7 @@ const AppLayout: React.FC = () => {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const navigate = useNavigate();
   const { layout } = useSettingsStore();
-  const { user } = useAuthStore();
+  const { user, hasRole } = useAuthStore();
   const isGuest = user?.id === 'demo-user';
   const { isActive: isTourActive } = useDemoTourStore();
   const { isEnabled } = useFeatureStore();
