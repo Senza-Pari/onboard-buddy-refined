@@ -74,7 +74,11 @@ function App() {
         />
         <Route 
           path="/admin" 
-          element={isAuthenticated ? <Admin /> : <Navigate to="/login" />} 
+          element={
+            <ProtectedRoute requiredRoles={['admin']}>
+              <Admin />
+            </ProtectedRoute>
+          } 
         />
       </Route>
       

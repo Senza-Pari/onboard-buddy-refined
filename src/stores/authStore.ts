@@ -218,7 +218,7 @@ const useAuthStore = create<AuthState>()(
             permissions: roles.includes('admin') ? ['*'] : [],
           };
 
-          console.log('Account created successfully for:', user.email);
+          if (import.meta.env.DEV) console.log('Account created successfully for:', user.email);
           
           // Subscription creation skipped - no subscriptions table yet
 

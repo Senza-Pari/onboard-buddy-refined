@@ -66,7 +66,7 @@ export class ImageStorageService {
         .from(this.BUCKET_NAME)
         .getPublicUrl(data.path);
 
-      console.log('Image uploaded successfully:', publicUrl);
+      if (import.meta.env.DEV) console.log('Image uploaded successfully:', publicUrl);
 
       return {
         url: publicUrl,
