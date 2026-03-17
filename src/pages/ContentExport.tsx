@@ -4,7 +4,7 @@ import { FileText, Download, Check, Mail, Copy, CheckSquare } from 'lucide-react
 import useTaskStore from '../stores/taskStore';
 import useGalleryStore from '../stores/galleryStore';
 import useMissionStore from '../stores/missionStore';
-import { generateStyledPDF } from '../lib/pdfGenerator';
+// PDF generator is dynamically imported to avoid crashing app on startup
 
 interface ContentExportProps {}
 
@@ -95,6 +95,7 @@ const ContentExport: React.FC<ContentExportProps> = () => {
     try {
       switch (exportFormat) {
         case 'pdf': {
+          const { generateStyledPDF } = await import('../lib/pdfGenerator');
           generateStyledPDF(tasks, missions, galleryItems, includeContent);
           break;
         }
