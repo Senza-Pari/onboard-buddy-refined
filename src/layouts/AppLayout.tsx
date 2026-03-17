@@ -63,7 +63,9 @@ const AppLayout: React.FC = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const handleLogout = () => {
+  const { logout } = useAuthStore();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
