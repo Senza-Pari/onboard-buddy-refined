@@ -42,7 +42,7 @@ export class ImageStorageService {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = userId ? `${folder}/${userId}/${fileName}` : `${folder}/${fileName}`;
 
-      console.log('Uploading image to:', filePath);
+      if (import.meta.env.DEV) console.log('Uploading image to:', filePath);
 
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
