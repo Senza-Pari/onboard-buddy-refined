@@ -95,6 +95,7 @@ const ContentExport: React.FC<ContentExportProps> = () => {
     try {
       switch (exportFormat) {
         case 'pdf': {
+          const { generateStyledPDF } = await import('../lib/pdfGenerator');
           generateStyledPDF(tasks, missions, galleryItems, includeContent);
           break;
         }
